@@ -47,7 +47,7 @@ are decorated with one or more of the following symbols.
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -56,7 +56,6 @@ graph LR
   
   class act01 this
 ```
-
 
 ### prod_mailgun_emailViaTemplate_single
 
@@ -78,15 +77,17 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  act02[prod_mailgun_batchEmailViaTemplate_single] --> db05(public.log_email_template_send)
-  act02[prod_mailgun_batchEmailViaTemplate_single] --> mailgun(api.mailgun.net/v3/mg.lightburnsoftware.com<br>/messages)
+  act02[prod_mailgun_emailViaTemplate_single] --> db05(public.log_email_template_send)
+  act02[prod_mailgun_emailViaTemplate_single] --> mailgun(api.mailgun.net/v3/mg.lightburnsoftware.com<br>/messages)
+  aut20(cronActionProcessEmailSends) --> act02[prod_mailgun_emailViaTemplate_single]
   
   class act02 this
+  class aut20 automation
   class db05 database
 ```
 
@@ -114,7 +115,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -133,14 +134,17 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
   act04[prod_mailgun_getEmailTemplates] --> mailgun(api.mailgun.net/v3/mg.lightburnsoftware.com<br>/templates)
-  
+  aut34(wsHookRecipientCompleted) --> act04[prod_mailgun_getEmailTemplates]
+  aut36(wsHookDocumentStateChange) --> act04[prod_mailgun_getEmailTemplates]
+
   class act04 this
+  class aut34,aut36 automation
 ```
 
 ## Production Actions / Utils
@@ -159,14 +163,16 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  act05[prod_utils_getGuid]
+  aut17(cronShopifyToCryplexSync) --> act05[prod_utils_getGuid]
+  aut20(cronActionProcessEmailSends) --> act05[prod_utils_getGuid]
   
   class act05 this
+  class aut17,aut20 automation
 ```
 
 ### prod_utils_convertObjToJson
@@ -177,7 +183,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -196,14 +202,17 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  act07[prod_util_getRandomPassword]
+  aut19(actionSyncUserToCryptlex) --> act07[prod_util_getRandomPassword]
+  act20(prod_pandaDocs_createResellerDoc) --> act07[prod_util_getRandomPassword]
   
   class act07 this
+  class aut19 automation
+  class act20 action
 ```
 
 ### prod_util_isValidEmail
@@ -216,14 +225,16 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  act08[prod_util_isValidEmail]
+  act13(prod_access_createApiKey) --> act08[prod_util_isValidEmail]
+  act14(prod_access_addApiKeyAccess) --> act08[prod_util_isValidEmail]
   
   class act08 this
+  class act13,act14 action
 ```
 
 ### prod_util_copyToClipboard
@@ -234,7 +245,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -259,7 +270,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -278,15 +289,17 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
   act10(prod_utils_compareTwoObj) --> act11[prod_utils_getStringChecksum]
-  
+  aut37(utils_getStringChecksum) --> act11[prod_utils_getStringChecksum]
+
   class act11 this
   class act10 action
+  class aut37 automation
 ```
 
 ## Production Actions / Access - Web Service
@@ -305,12 +318,12 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  act12[prod_access_createApiKey] --> db08(public.lb_api_key)
+  act12[prod_access_validateApiKeyUnique] --> db08(public.lb_api_key)
   
   class act12 this
   class db08 database
@@ -332,7 +345,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -360,7 +373,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -388,7 +401,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -416,7 +429,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -443,7 +456,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -470,15 +483,17 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
   act18[prod_access_validateApiKeyAndAccess] --> db08(public.lb_api_key)
   act18[prod_access_validateApiKeyAndAccess] --> db09(public.lb_api_key_access)
+  aut29(actionValidateApiKeyAndAccess) --> act18[prod_access_validateApiKeyAndAccess]
 
   class act18 this
+  class aut29 automation
   class db08,db09 database
 ```
 
@@ -501,16 +516,18 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
   act19[prod_pandaDocs_sendDocument] --> panda1(api.pandadoc.com<br>//public/v1/documents/_id_/send)
   act19[prod_pandaDocs_sendDocument] --> panda2(api.pandadoc.com<br>/public/v1/documents/_id_/details)
+  aut30(actionPandaDocGetHistorical) --> act19[prod_pandaDocs_sendDocument]
 
   class act19 this
   class act07 action
+  class aut30 automation
 ```
 
 ### prod_pandaDocs_createResellerDoc
@@ -542,7 +559,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -571,12 +588,12 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  act21[prod_pandaDocs_getDocumentDownload] --> panda(api.pandadoc.com<br>/public/v1/documents/_doc_issue_ref_/details)
+  act21[prod_pandaDocs_getDocDetails] --> panda(api.pandadoc.com<br>/public/v1/documents/_doc_issue_ref_/details)
 
   class act21 this
 ```
@@ -595,7 +612,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -613,7 +630,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -641,7 +658,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -674,14 +691,16 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
   act25[prod_psqlLb_updateDocumentStatus] --> db03(public.lb_registration_subm)
+  aut30(actionPandaDocGetHistorical) --> act25[prod_psqlLb_updateDocumentStatus]
 
   class act25 this
+  class aut30 automation
   class db03 database
 ```
 
@@ -701,14 +720,16 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
   act26[prod_slack_requestUsersLookupByEmail] --> slack(slack.com<br>/api/users.lookupByEmail)
+  act27(prod_slack_sendMessage) --> act26[prod_slack_requestUsersLookupByEmail]
 
   class act26 this
+  class act27 action
 ```
 
 ### prod_slack_sendMessage
@@ -732,15 +753,19 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  act27[prod_shopify_companyCreate] --> act26(prod_slack_requestUsersLookupByEmail)
-  act27[prod_shopify_companyCreate] --> slack(slack)
-
+  act27[prod_slack_sendMessage] --> act26(prod_slack_requestUsersLookupByEmail)
+  act27[prod_slack_sendMessage] --> slack(slack)
+  aut34(wsHookRecipientCompleted) --> act27[prod_slack_sendMessage]
+  aut35(wsHookDocumentReady) --> act27[prod_slack_sendMessage]
+  aut36(wsHookDocumentStateChange) --> act27[prod_slack_sendMessage]
+  
   class act27 this
+  class aut34,aut35,aut36 automation
 ```
 
 ## Production Actions / Shopify
@@ -779,7 +804,7 @@ graph LR
 
 ```mermaid
 graph LR
-  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef this fill:#f96,stroke:#000,stroke-width:3;
   classDef automation fill:#9f6,stroke:#333;
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
@@ -791,7 +816,9 @@ graph LR
   act28[prod_shopify_companyCreate] --> shopify4(Shopify Admin API<br>customerCreate)
   act28[prod_shopify_companyCreate] --> shopify5(Shopify Admin API<br>companyAssignCustomerAsContact)
   act28[prod_shopify_companyCreate] --> shopify6(Shopify Admin API<br>companyAssignMainContact)
+  aut35(wsHookDocumentReady) --> act28[prod_shopify_companyCreate]
 
   class act28 this
   class db04 action
+  class aut35 automation
 ```
