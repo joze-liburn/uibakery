@@ -112,10 +112,8 @@ Channel and user are encoded in the endpoint.
 ### SMTP
 
 - SMTP
-  - Host: smtp.mailgun.org
-  - Port: 465
-  - User: [uib@mg.lightburnsoftware.com](mailto:uib@mg.lightburnsoftware.com)
-  - Password: **TBD**
+  - See keeper.com shared folder `UI Bakery` for host, port, username and
+    password.
   - Allow anonymous access
 
 ### Mailgun API
@@ -124,8 +122,8 @@ Channel and user are encoded in the endpoint.
 - [https://api.mailgun.net/v3/mg.lightburnsoftware.com](https://api.mailgun.net/v3/mg.lightburnsoftware.com)
 - Authorization
   - Basic auth
-  - User: `da554c25-54d128d6`
-  - Password: **TBD**
+  - See keeper.com shared folder `UI Bakery` for host, port, username and
+    password.
 
 ### PandaDocs (Prod)
 
