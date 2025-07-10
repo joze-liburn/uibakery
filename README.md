@@ -1,11 +1,11 @@
-# uibakery
+# UI Bakery
 
 UI Bakery code documentation
 
-## UI Bakery 
+## UI Bakery
 
 UI Bakery is a low-code platform to easily build internal tools and apps. It can
-produce responsice UI, connect to various data sources, and can be self-hosted.
+produce responsive UI, connect to various data sources, and can be self-hosted.
 
 ## Project maintenance
 
@@ -33,3 +33,15 @@ UI Bakery code is split into two categories:
 - [Automations](./automations.md)
 - [Actions Library](./actionslib.md)
 
+The [call graph](./callgraph.md) (without calls to external services) shows some
+automations and actions being unused (by the backend):
+
+- Automations
+  - [actionShopifyGetCompaniesList](./automations.md#actionshopifygetcompanieslist)
+  - [utils_getStringChecksum](./automations.md#utils_getstringchecksum)
+- Actions
+  - [prod_utils_compareTwoObj](./actionslib.md#prod_utils_comparetwoobj)
+  - [prod_access_createApiKey](./actionslib.md#prod_access_createapikey)
+  - [prod_access_addApiKeyAccess](./actionslib.md#prod_access_addapikeyaccess)
+  - [prod_pandaDocs_createResellerDoc](./actionslib.md#prod_pandadocs_createresellerdoc)
+  - [prod_pandaDocs_getDocs](./actionslib.md#prod_pandadocs_getdocs)

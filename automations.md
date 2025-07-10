@@ -55,7 +55,8 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  cron(🕒) --> aut01[cronActionDeltaShopifySync_30d_daily] --> aut03(startActionDeltaFullShopifySync)
+  cron(🕒) --> aut01[cronActionDeltaShopifySync_30d_daily]
+  aut01[cronActionDeltaShopifySync_30d_daily] --> aut03(startActionDeltaFullShopifySync)
 
   class aut01 this
   class aut03 automation
@@ -85,7 +86,8 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  cron(🕒) --> aut02[cronActionDeltaShopifySync_01d_5m] --> aut03(startActionDeltaFullShopifySync)
+  cron(🕒) --> aut02[cronActionDeltaShopifySync_01d_5m]
+  aut02[cronActionDeltaShopifySync_01d_5m] --> aut03(startActionDeltaFullShopifySync)
 
   class aut02 this
   class aut03 automation
@@ -139,7 +141,7 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  cron(🕒) --> aut04[cronBkgActionDeltaFullShopifySync] --> act05(prod_utils_getGuid)
+  cron(🕒) --> aut04[cronBkgActionDeltaFullShopifySync]
   aut04[cronBkgActionDeltaFullShopifySync] --> db07(public.log_sync_record)
   aut04[cronBkgActionDeltaFullShopifySync] --> aut08(actionShopifyGetCompaniesListDetails)
   aut04[cronBkgActionDeltaFullShopifySync] --> aut05(bkgrndActionDeltaFullShopifySync)
@@ -164,10 +166,10 @@ graph LR
 
   aut04(cronBkgActionDeltaFullShopifySync) --> aut05[bkgrndActionDeltaFullShopifySync]
   aut05[bkgrndActionDeltaFullShopifySync] --> aut10(actionShopifyGetCompanyContacts)
-  aut05[bkgrndActionDeltaFullShopifySync] --> act1(actionSyncGetLatestChecksum)
+  aut05[bkgrndActionDeltaFullShopifySync] --> aut06(actionSyncGetLatestChecksum)
 
   class aut05 this
-  class aut04,aut10 automation
+  class aut04,aut06,aut10 automation
   class act1 action
   class db database
 ```
@@ -215,7 +217,7 @@ graph LR
   Shopify that fulfil some criteria, most notably modified after.
 - If list is less than or equal to  25 entries, calls
   `actionShopifyGetCompaniesListDetails` on the obtained list of IDs.
-- Otherwise calculates checksums of obtained entries and inserts all together 
+- Otherwise calculates checksums of obtained entries and inserts all together
   into the database
 
 ```mermaid
@@ -248,9 +250,9 @@ graph LR
   classDef database fill:#96f,stroke:#333;
 
   aut04(cronBkgActionDeltaFullShopifySync) --> aut08[actionShopifyGetCompaniesListDetails]
-  aut07(actionShopifyGetCompaniesList)--> aut08[actionShopifyGetCompaniesListDetails]
-  aut08[actionShopifyGetCompaniesListDetails]--> aut11(actionShopifyGetCompanyData)
-      
+  aut07(actionShopifyGetCompaniesList) --> aut08[actionShopifyGetCompaniesListDetails]
+  aut08[actionShopifyGetCompaniesListDetails] --> aut11(actionShopifyGetCompanyData)
+
   class aut08 this
   class aut04,aut07,aut11 automation
 ```
@@ -269,11 +271,11 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  aut07(actionShopifyGetCompaniesList)--> aut09[actionShopifyGetCompanyIDs]
-  aut13(cronShopifyToZenSync)--> aut09[actionShopifyGetCompanyIDs]
-  aut09[actionShopifyGetCompanyIDs]--> shopify(myshopify.com<br>/admin/api/2024-10/graphql.json)
-  aut09[actionShopifyGetCompanyIDs]--> aut11(actionShopifyGetCompanyData)
-      
+  aut07(actionShopifyGetCompaniesList) --> aut09[actionShopifyGetCompanyIDs]
+  aut13(cronShopifyToZenSync) --> aut09[actionShopifyGetCompanyIDs]
+  aut09[actionShopifyGetCompanyIDs] --> shopify(myshopify.com<br>/admin/api/2024-10/graphql.json)
+  aut09[actionShopifyGetCompanyIDs] --> aut11(actionShopifyGetCompanyData)
+
   class aut09 this
   class aut07,aut11,aut13 automation
   class act11 action
@@ -317,10 +319,10 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  aut08(actionShopifyGetCompaniesListDetails)--> aut11[actionShopifyGetCompanyData]
-  aut09(actionShopifyGetCompanyIDs)--> aut11[actionShopifyGetCompanyData]
-  aut11[actionShopifyGetCompanyData]--> shopify(myshopify.com<br>/admin/api/2024-10/graphql.json)
-  
+  aut08(actionShopifyGetCompaniesListDetails) --> aut11[actionShopifyGetCompanyData]
+  aut09(actionShopifyGetCompanyIDs) --> aut11[actionShopifyGetCompanyData]
+  aut11[actionShopifyGetCompanyData] --> shopify(myshopify.com<br>/admin/api/2024-10/graphql.json)
+
   class aut11 this
   class aut08,aut09 automation
 ```
@@ -340,7 +342,8 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  aut13(cronShopifyToZenSync)--> aut12[actionTagShopifyVendorUsers]--> shopify(myshopify.com<br>/admin/api/2024-10/graphql.json)
+  aut13(cronShopifyToZenSync) --> aut12[actionTagShopifyVendorUsers]
+  aut12[actionTagShopifyVendorUsers] --> shopify(myshopify.com<br>/admin/api/2024-10/graphql.json)
 
   class aut12 this
   class aut13 automation
@@ -363,7 +366,7 @@ graph LR
 
 - Performs up to 100 calls to `actionShopifyGetCompanyIDs` to obtain list of
   companies from Shopify
-- Similarly performs up to 100 calls of `actionZenGetCompanyIDs` to obtain 
+- Similarly performs up to 100 calls of `actionZenGetCompanyIDs` to obtain
   list of companies from ZenDesk
 - List of ids from both searches is merged **Q** in `codeGetCompanyList`?
 - For every id, a call to `actionSyncShopifyCompany`
@@ -377,10 +380,10 @@ graph LR
   classDef database fill:#96f,stroke:#333;
 
   wh((🪝)) --> aut13[cronShopifyToZenSync]
-  aut13[cronShopifyToZenSync]--> aut09(actionShopifyGetCompanyIDs)
-  aut13[cronShopifyToZenSync]--> aut16(actionZenGetCompanyIDs)
-  aut13[cronShopifyToZenSync]--> aut15(actionSyncShopifyCompany)
-  aut13[cronShopifyToZenSync]--> aut12(actionTagShopifyVendorUsers)
+  aut13[cronShopifyToZenSync] --> aut09(actionShopifyGetCompanyIDs)
+  aut13[cronShopifyToZenSync] --> aut16(actionZenGetCompanyIDs)
+  aut13[cronShopifyToZenSync] --> aut15(actionSyncShopifyCompany)
+  aut13[cronShopifyToZenSync] --> aut12(actionTagShopifyVendorUsers)
 
   class aut13 this
   class aut09,aut12,aut15,aut16 automation
@@ -401,11 +404,11 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  aut14[actionSyncShopifyVendorUserToZen]--> zen_us(zendesk.com<br>/api/v2/users/search)
-  aut14[actionSyncShopifyVendorUserToZen]--> zen_os(zendesk.com<br>/api/v2/organizations/search)
-  aut14[actionSyncShopifyVendorUserToZen]--> zen_uo(zendesk.com<br>/api/v2/users/_id_/organizations)
-  aut14[actionSyncShopifyVendorUserToZen]--> zen_ucu(zendesk.com<br>/api/v2/users/create_or_update)
-  aut14[actionSyncShopifyVendorUserToZen]--> zen_om(zendesk.com<br>/api/v2/organization_memberships)
+  aut14[actionSyncShopifyVendorUserToZen] --> zen_us(zendesk.com<br>/api/v2/users/search)
+  aut14[actionSyncShopifyVendorUserToZen] --> zen_os(zendesk.com<br>/api/v2/organizations/search)
+  aut14[actionSyncShopifyVendorUserToZen] --> zen_uo(zendesk.com<br>/api/v2/users/_id_/organizations)
+  aut14[actionSyncShopifyVendorUserToZen] --> zen_ucu(zendesk.com<br>/api/v2/users/create_or_update)
+  aut14[actionSyncShopifyVendorUserToZen] --> zen_om(zendesk.com<br>/api/v2/organization_memberships)
 
   class aut14 this
 ```
@@ -428,10 +431,10 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  aut13(cronShopifyToZenSync)--> aut15[actionSyncShopifyCompany]
-  aut15[actionSyncShopifyCompany]--> shopify(myshopify.com<br>/admin/api/2024-10/graphql.json)
-  aut15[actionSyncShopifyCompany]--> zen_os(zendesk.com<br>/api/v2/organizations/search)
-  aut15[actionSyncShopifyCompany]--> zen(zendesk.com<br>/api/v2/organizations)
+  aut13(cronShopifyToZenSync) --> aut15[actionSyncShopifyCompany]
+  aut15[actionSyncShopifyCompany] --> shopify(myshopify.com<br>/admin/api/2024-10/graphql.json)
+  aut15[actionSyncShopifyCompany] --> zen_os(zendesk.com<br>/api/v2/organizations/search)
+  aut15[actionSyncShopifyCompany] --> zen(zendesk.com<br>/api/v2/organizations)
 
   class aut15 this
   class aut13 automation
@@ -448,9 +451,9 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  aut13(cronShopifyToZenSync)--> aut16[actionZenGetCompanyIDs]
-  aut16[actionZenGetCompanyIDs]--> zen_o(zendesk.com<br>/api/v2/organizations)
-  aut16[actionZenGetCompanyIDs]--> zen_ap(zendesk.com<br>/requestAdditionalPages)
+  aut13(cronShopifyToZenSync) --> aut16[actionZenGetCompanyIDs]
+  aut16[actionZenGetCompanyIDs] --> zen_o(zendesk.com<br>/api/v2/organizations)
+  aut16[actionZenGetCompanyIDs] --> zen_ap(zendesk.com<br>/requestAdditionalPages)
 
   class aut16 this
   class aut13 automation
@@ -566,10 +569,12 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
+  aut18(actionSyncShopifyRetailerUserToCryptlex) --> aut19[actionSyncUserToCryptlex]
   aut19[actionSyncUserToCryptlex] --> act07(prod_util_getRandomPassword)
   aut19[actionSyncUserToCryptlex] --> cryptlex(api.cryptlex.com<br>/v3/users)
 
-  class aut19 automation
+  class aut19 this
+  class aut18 automation
   class act07 action
 ```
 
@@ -591,10 +596,10 @@ graph LR
   cron(🕒) --> aut20[cronActionProcessEmailSends]
   aut20[cronActionProcessEmailSends] --> act05(prod_utils_getGuid)
   aut20[cronActionProcessEmailSends] --> db05(public.log_email_template_send)
-  aut20[cronActionProcessEmailSends] --> act03(prod_mailgun_emailViaTemplate_single)
+  aut20[cronActionProcessEmailSends] --> act02(prod_mailgun_emailViaTemplate_single)
 
   class aut20 this
-  class act03,act05 action
+  class act02,act05 action
   class db05 database
 ```
 
@@ -631,6 +636,7 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
+  wh((🪝)) --> aut27[wsGetCompatibilityList]
   aut27[wsGetCompatibilityList] --> aut29(actionValidateApiKeyAndAccess)
 
   class aut27 this
@@ -659,6 +665,7 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
+  wh((🪝)) --> aut28[wsPostEmailSubscription]
   aut28[wsPostEmailSubscription] --> aut29(actionValidateApiKeyAndAccess)
   aut28[wsPostEmailSubscription] --> db01(public.lb_comm_email_subsc)
 
@@ -694,11 +701,11 @@ graph LR
 
   aut27(wsGetCompatibilityList) --> aut29[actionValidateApiKeyAndAccess]
   aut28(wsPostEmailSubscription) --> aut29[actionValidateApiKeyAndAccess]
-  aut29[actionValidateApiKeyAndAccess] --> act4(prod_access_validateApiKeyAndAccess)
+  aut29[actionValidateApiKeyAndAccess] --> act18(prod_access_validateApiKeyAndAccess)
 
   class aut29 this
   class aut27,aut28 automation
-  class act4 action
+  class act18 action
 ```
 
 ## PandaDoc
@@ -766,7 +773,8 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  aut30(actionPandaDocGetHistorical) --> aut31[actionPandaDocGetDocsByPage] --> panda1(pandadoc.com<br>/public/v1/documents)
+  aut30(actionPandaDocGetHistorical) --> aut31[actionPandaDocGetDocsByPage]
+  aut31[actionPandaDocGetDocsByPage] --> panda1(pandadoc.com<br>/public/v1/documents)
 
   class aut31 this
   class aut30 automation
@@ -791,7 +799,8 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  aut30(actionPandaDocGetHistorical) --> aut32[actionPandaDocGetDocDetails] --> panda2(pandadoc.com<br>public/v1/documents/_id_/detail)
+  aut30(actionPandaDocGetHistorical) --> aut32[actionPandaDocGetDocDetails]
+  aut32[actionPandaDocGetDocDetails] --> panda2(pandadoc.com<br>public/v1/documents/_id_/detail)
 
   class aut32 this
   class aut30 automation
@@ -817,7 +826,8 @@ graph LR
   classDef action fill:#f96,stroke:#333;
   classDef database fill:#96f,stroke:#333;
 
-  aut30(actionPandaDocGetHistorical) --> aut33[actionSyncPandaDocDataToRequest] --> db03(public.lb_registration_subm)
+  aut30(actionPandaDocGetHistorical) --> aut33[actionSyncPandaDocDataToRequest]
+  aut33[actionSyncPandaDocDataToRequest] --> db03(public.lb_registration_subm)
 
   class aut33 this
   class aut30 automation
@@ -853,7 +863,7 @@ graph LR
   class act04,act27 action
   class db03,db04,db05,db06 database
 ```
-  
+
 ### 🪝🡆 `wsHookDocumentReady`
 
 - Input assumes a JSON array of length exactly 1. This may not hold in the
@@ -914,7 +924,7 @@ graph LR
 ## Utils
 
 ### `utils_getStringChecksum`
-  
+
 - Input: any
 - Calculates a checksum of a string
 
