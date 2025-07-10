@@ -1,4 +1,4 @@
-# UI Bakery
+# UI Bakery Projects
 
 UI Bakery code documentation
 
@@ -6,6 +6,13 @@ UI Bakery code documentation
 
 UI Bakery is a low-code platform to easily build internal tools and apps. It can
 produce responsive UI, connect to various data sources, and can be self-hosted.
+
+## Projects
+
+Currently there are two projects developed with UI Bakery tool:
+
+- Lightburn Portal
+- Lightburn Vendor Compatibility Matrix
 
 ## Project maintenance
 
@@ -45,3 +52,7 @@ automations and actions being unused (by the backend):
   - [prod_access_addApiKeyAccess](./actionslib.md#prod_access_addapikeyaccess)
   - [prod_pandaDocs_createResellerDoc](./actionslib.md#prod_pandadocs_createresellerdoc)
   - [prod_pandaDocs_getDocs](./actionslib.md#prod_pandadocs_getdocs)
+
+## Data sources
+
+UI Bakery projects are connected to several [data sources](./datasources.md).
