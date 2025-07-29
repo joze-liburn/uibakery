@@ -200,6 +200,44 @@ graph LR
 
 ## Shopify
 
+### `cronShopifyDataMaintenance`
+
+- Input:
+
+  ```json
+  {
+    "deltaQuery": true,
+    "deltaDays": 90,
+    "queryOvrrd": "",
+    "forceManualSync": false,
+  }
+  ```
+
+- Performs up to 100 calls to `actionShopifyGetCompanyIDs` to obtain list of
+  companies from Shopify
+- Similarly performs up to 100 calls of `actionZenGetCompanyIDs` to obtain
+  list of companies from ZenDesk
+- List of ids from both searches is merged **Q** in `codeGetCompanyList`?
+- For every id, a call to `actionSyncShopifyCompany`
+- **Q** in `loopSyncShopifyVendorUser`, called action was deleted?
+
+```mermaid
+graph LR
+  classDef this fill:#9f6,stroke:#000,stroke-width:3;
+  classDef automation fill:#9f6,stroke:#333;
+  classDef action fill:#f96,stroke:#333;
+  classDef database fill:#96f,stroke:#333;
+
+  wh((🪝)) --> aut38[cronShopifyDataMaintenance]
+  aut38[cronShopifyDataMaintenance] --> aut09(actionShopifyGetCompanyIDs)
+  aut38[cronShopifyDataMaintenance] --> aut16(actionZenGetCompanyIDs)
+  aut38[cronShopifyDataMaintenance] --> aut15(actionSyncShopifyCompany)
+  aut38[cronShopifyDataMaintenance] --> aut12(actionTagShopifyVendorUsers)
+
+  class aut13 this
+  class aut09,aut12,aut15,aut16 automation
+```
+
 ### `actionShopifyGetCompaniesList`
 
 - Input:

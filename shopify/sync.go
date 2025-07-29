@@ -1,0 +1,5 @@
+package shopify
+
+func GetCompanies() {
+
+}
