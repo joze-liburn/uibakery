@@ -17,6 +17,7 @@ graph LR
   act27(prod_slack_sendMessage) --> act26(prod_slack_requestUsersLookupByEmail)
   aut01(cronActionDeltaShopifySync_30d_daily) --> aut03(startActionDeltaFullShopifySync)
   aut02(cronActionDeltaShopifySync_01d_5m) --> aut03(startActionDeltaFullShopifySync)
+  aut03(startActionDeltaFullShopifySync) --> aut05(bkgrndActionDeltaFullShopifySync)
   aut04(cronBkgActionDeltaFullShopifySync) --> aut05(bkgrndActionDeltaFullShopifySync)
   aut04(cronBkgActionDeltaFullShopifySync) --> aut08(actionShopifyGetCompaniesListDetails)
   aut05(bkgrndActionDeltaFullShopifySync) --> aut06(actionSyncGetLatestChecksum)

@@ -72,7 +72,7 @@ graph LR
   }
   ```
 
-- Set status of the specified (identified by `lb_id`) record to `PENDING`, 
+- Set status of the specified (identified by `lb_id`) record to `PENDING`,
   sends an email using Mailgun and updates the status to `SENT`.
 
 ```mermaid
