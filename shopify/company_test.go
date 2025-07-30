@@ -1,9 +1,13 @@
 package shopify
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -461,3 +465,163 @@ func TestGetCompanyDetails(t *testing.T) {
 	"metafield":null
 }
 */
+
+func TestNormalize(t *testing.T) {
+	kosovel := Contact{
+		Id:            "contact-001",
+		CreatedAt:     time.Date(2025, time.July, 30, 8, 15, 0, 0, time.UTC),
+		IsMainContact: true,
+		Customer: Customer{
+			Id:        "customer-001",
+			CreatedAt: time.Date(1904, time.March, 18, 8, 0, 0, 0, time.UTC),
+			FirstName: "Srečko",
+			LastName:  "Kosovel",
+		},
+	}
+	kajuh := Contact{
+		Id:            "contact-002",
+		CreatedAt:     time.Date(2025, time.July, 30, 8, 15, 0, 0, time.UTC),
+		IsMainContact: true,
+		Customer: Customer{
+			Id:        "customer-002",
+			CreatedAt: time.Date(1922, time.December, 13, 8, 0, 0, 0, time.UTC),
+			FirstName: "Karl",
+			LastName:  "Destovnik",
+		},
+	}
+
+	tests := []struct {
+		name    string
+		company Company
+		want    ExchangeCompany
+	}{
+		{
+			name: "minimal",
+			company: Company{
+				Name:       "test",
+				ExternalId: "eid-1",
+			},
+			want: ExchangeCompany{
+				Name:       "test",
+				ExternalId: "eid-1",
+				Result: Company{
+					Name:       "test",
+					ExternalId: "eid-1",
+				},
+				OrganizationFields: map[string]any{"sync_shopify_company": false},
+			}.InitArrays(),
+		},
+		{
+			name: "contact",
+			company: Company{
+				Name: "test",
+				Contacts: Contacts{
+					Nodes: []Contact{kajuh, kosovel},
+				},
+			},
+			want: ExchangeCompany{
+				Name: "test",
+				Result: Company{
+					Name: "test",
+					Contacts: Contacts{
+						Nodes: []Contact{kajuh, kosovel},
+					},
+				},
+				OrganizationFields: map[string]any{"sync_shopify_company": false},
+				Contacts:           []Contact{kajuh, kosovel},
+			}.InitArrays(),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := test.company.NormalizeCompany()
+			if df := cmp.Diff(test.want, got); df != "" {
+				t.Errorf("%s: NormalizeCompany(), -want +got\n%s", test.name, df)
+			}
+		})
+	}
+}
+
+func TestGetCompanyIds(t *testing.T) {
+	tests := []struct {
+		name     string
+		response map[string]any
+		want     CompanyConnection
+		wanterr  error
+	}{
+		{
+			name: "normal",
+			response: map[string]any{
+				"data": map[string]any{
+					"companies": map[string]any{
+						"nodes": []any{
+							map[string]any{"id": "gid://shopify/Company/001"},
+							map[string]any{"id": "gid://shopify/Company/002"},
+							map[string]any{"id": "gid://shopify/Company/003"},
+						},
+					},
+				},
+			},
+			want: CompanyConnection{
+				Nodes: []Company{
+					{Id: "gid://shopify/Company/001"},
+					{Id: "gid://shopify/Company/002"},
+					{Id: "gid://shopify/Company/003"},
+				},
+			},
+		},
+		{
+			name: "error",
+			response: map[string]any{
+				"data": map[string]any{
+					"nodes": []any{
+						map[string]any{"id": "gid://shopify/Company/001"},
+						map[string]any{"id": "gid://shopify/Company/002"},
+						map[string]any{"id": "gid://shopify/Company/003"},
+					},
+				},
+			},
+			wanterr: errInput,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				token := r.Header.Get("X-Shopify-Access-Token")
+				if token != "valid access token" {
+					failureResponse := map[string]any{
+						"errors": "Invalid API key or access token",
+					}
+					w.WriteHeader(http.StatusUnauthorized)
+					json.NewEncoder(w).Encode(failureResponse)
+					return
+				}
+				successResponse := test.response
+				// The following is non-functional but required to mimic GraphQL
+				// return structure and its interpretation by the client.
+				// In particular, make sure virtual bandwidth is available.
+				successResponse["extensions"] = map[string]any{
+					"cost": map[string]any{
+						"throttleStatus": map[string]any{
+							"currentlyAvailable": 100,
+						},
+					},
+				}
+				json.NewEncoder(w).Encode(successResponse)
+			}))
+			defer ts.Close()
+			// Skip certificate check because we would fail.
+			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+			spfy := New(ts.URL[8:], "valid access token")
+			got, err := spfy.GetCompaniesIds(12)
+			if !errors.Is(err, test.wanterr) {
+				t.Errorf("%s: Got error %s, want %s", test.name, err, test.wanterr)
+			} else if df := cmp.Diff(test.want, got); df != "" {
+				t.Errorf("%s: GetCompaniesIds -want +got\n%s", test.name, df)
+			}
+		})
+	}
+}

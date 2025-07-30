@@ -119,6 +119,22 @@ type (
 		//     value
 		// }
 	}
+
+	/// ExchangeCompany is used to pass information on company over the
+	// database based queue (compatibility with UI Bakery code).
+	ExchangeCompany struct {
+		Result             Company        `json:"result"`
+		Name               string         `json:"name"`
+		ExternalId         string         `json:"external_id"`
+		GroupId            string         `json:"group_id"`
+		NoSyncZendesk      bool           `json:"do_not_sync_to_zendesk"`
+		Tags               []string       `json:"tags"`
+		Vendor             bool           `json:"vendor"`
+		Reseller           bool           `json:"reseller"`
+		DomainNames        []string       `json:"domain_names"`
+		OrganizationFields map[string]any `json:"organization_fields"`
+		Contacts           []Contact      `json:"contacts"`
+	}
 )
 
 func stringToDateTimeHook(f reflect.Type, t reflect.Type, data any) (any, error) {
@@ -174,7 +190,7 @@ func companyFromGQL(data map[string]any) (Company, error) {
 }
 
 // GetCompaniesIds obtains list of client ids from Shopify.
-func GetCompaniesIds(client *gopify.Client, limit int) (CompanyConnection, error) {
+func (spfy *ShopifyOp) GetCompaniesIds(limit int) (CompanyConnection, error) {
 	query := `
 query Companies($pgSize: Int!, $cursor: String) {
   companies (first: $pgSize, after: $cursor) {
@@ -188,7 +204,7 @@ query Companies($pgSize: Int!, $cursor: String) {
   }
 }
 `
-	gqlResult, err := client.Graphql(query, map[string]any{"pgSize": limit})
+	gqlResult, err := spfy.client.Graphql(query, map[string]any{"pgSize": limit})
 	if err != nil {
 		return CompanyConnection{}, fmt.Errorf("%w: %v", errShopify, err)
 	}
@@ -309,4 +325,36 @@ query Company ($queryValue: ID!) {
 	}
 
 	return companyFromGQL(gqlResult)
+}
+
+// InitArrays fixes default array fields, from nil to empty array (except for
+// OrganizationFields where it is populated withe defaults).
+// Fields affected: Tags, DomainNames, OrganizationFields.
+// If a field is not nil, it is not overwritten.
+func (from ExchangeCompany) InitArrays() ExchangeCompany {
+	if from.Tags == nil {
+		from.Tags = []string{}
+	}
+	if from.DomainNames == nil {
+		from.DomainNames = []string{}
+	}
+	if from.OrganizationFields == nil {
+		from.OrganizationFields = map[string]any{"sync_shopify_company": false}
+	}
+	return from
+}
+
+// NormalizeCompany flattens the Comany structure for exchange through the
+// database queue.
+func (c *Company) NormalizeCompany() ExchangeCompany {
+	ret := ExchangeCompany{}.InitArrays()
+	ret.Result = *c
+	ret.Name = c.Name
+	ret.ExternalId = c.ExternalId
+	ret.GroupId = ""
+	ret.NoSyncZendesk = false
+	ret.Vendor = false
+	ret.Reseller = false
+	ret.Contacts = c.Contacts.Nodes
+	return ret
 }
