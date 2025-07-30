@@ -120,9 +120,9 @@ type (
 		// }
 	}
 
-	/// ExchangeCompany is used to pass information on company over the
+	/// DetailCompany is used to pass information on company over the
 	// database based queue (compatibility with UI Bakery code).
-	ExchangeCompany struct {
+	DetailCompany struct {
 		Result             Company        `json:"result"`
 		Name               string         `json:"name"`
 		ExternalId         string         `json:"external_id"`
@@ -331,7 +331,7 @@ query Company ($queryValue: ID!) {
 // OrganizationFields where it is populated withe defaults).
 // Fields affected: Tags, DomainNames, OrganizationFields.
 // If a field is not nil, it is not overwritten.
-func (from ExchangeCompany) InitArrays() ExchangeCompany {
+func (from DetailCompany) InitArrays() DetailCompany {
 	if from.Tags == nil {
 		from.Tags = []string{}
 	}
@@ -344,10 +344,10 @@ func (from ExchangeCompany) InitArrays() ExchangeCompany {
 	return from
 }
 
-// NormalizeCompany flattens the Comany structure for exchange through the
-// database queue.
-func (c *Company) NormalizeCompany() ExchangeCompany {
-	ret := ExchangeCompany{}.InitArrays()
+// ToDetail makes baroque version of the Company structure for exchange through
+// the database queue.
+func (c *Company) ToDetail() DetailCompany {
+	ret := DetailCompany{}.InitArrays()
 	ret.Result = *c
 	ret.Name = c.Name
 	ret.ExternalId = c.ExternalId

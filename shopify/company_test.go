@@ -493,7 +493,7 @@ func TestNormalize(t *testing.T) {
 	tests := []struct {
 		name    string
 		company Company
-		want    ExchangeCompany
+		want    DetailCompany
 	}{
 		{
 			name: "minimal",
@@ -501,7 +501,7 @@ func TestNormalize(t *testing.T) {
 				Name:       "test",
 				ExternalId: "eid-1",
 			},
-			want: ExchangeCompany{
+			want: DetailCompany{
 				Name:       "test",
 				ExternalId: "eid-1",
 				Result: Company{
@@ -519,7 +519,7 @@ func TestNormalize(t *testing.T) {
 					Nodes: []Contact{kajuh, kosovel},
 				},
 			},
-			want: ExchangeCompany{
+			want: DetailCompany{
 				Name: "test",
 				Result: Company{
 					Name: "test",
@@ -535,7 +535,7 @@ func TestNormalize(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got := test.company.NormalizeCompany()
+			got := test.company.ToDetail()
 			if df := cmp.Diff(test.want, got); df != "" {
 				t.Errorf("%s: NormalizeCompany(), -want +got\n%s", test.name, df)
 			}
