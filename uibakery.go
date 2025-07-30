@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/oussama4/gopify"
 	"gitlab.com/joze-liburn/uibakery/lbqueue"
 	"gitlab.com/joze-liburn/uibakery/shopify"
 )
 
 func TestLbqueue() {
+	fmt.Println("Test LbDatabase.")
 	host := os.Getenv("PG_DEV_HOST")
 	secret := os.Getenv("PG_DEV_PWD")
 	db := lbqueue.LbDb{}
@@ -18,6 +18,7 @@ func TestLbqueue() {
 		fmt.Printf("Opened with error %s\n", err)
 		return
 	}
+	fmt.Println("Database opened.")
 	g, c, err := db.ClaimRecrds(10)
 	if err != nil {
 		fmt.Printf("ClaimRecords() retured an error %s\n", err)
@@ -30,12 +31,15 @@ func TestLbqueue() {
 		return
 	}
 	fmt.Printf("%d records got\n", len(x))
+	fmt.Println("Test LbDatabase ended.")
 }
 
-func Test(limit int) {
+func TestShopify(limit int) {
+	fmt.Println("Test Shopify.")
 	secret := os.Getenv("SHOPIFY_DEV_PWD")
-	client := gopify.NewClient("lightburn-software-llc.myshopify.com", secret)
-	ids, err := shopify.GetCompaniesIds(client, limit)
+	client := shopify.New("lightburn-software-llc.myshopify.com", secret)
+	fmt.Println("Client created")
+	ids, err := client.GetCompaniesIds(limit)
 	if err != nil {
 		fmt.Println("Error", err)
 		return
@@ -47,6 +51,7 @@ func Test(limit int) {
 	if ids.PageInfo.HasNextPage {
 		fmt.Println("There's more")
 	}
+	fmt.Println("Test Shopify ended.")
 }
 
 func main() {
