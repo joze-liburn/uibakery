@@ -17,37 +17,52 @@ func GetSyncMetadata(from lbqueue.LogSyncRecord) (shopify.SyncMetadata, error) {
 	return ret, err
 }
 
-// For every contact...
-func DetailToSync(company shopify.DetailCompany, destination string, submitter string, batch *time.Time) ([]lbqueue.LogSyncRecord, error) {
-	ret := []lbqueue.LogSyncRecord{}
+// DetailsToSync expands a given list of companies (in DetailCompany format) so
+// that for every contact and every destination it creates a database record.
+func DetailsToSync(companies []shopify.DetailCompany, destinations []string, submitter string, batch time.Time) <-chan lbqueue.LogSyncRecord {
+	out := make(chan lbqueue.LogSyncRecord)
 	base := lbqueue.LogSyncRecord{
-		Submitter:       submitter,
-		DestinationName: destination,
-		BatchId:         batch,
-		CompanyId:       company.ExternalId,
+		Submitter:        submitter,
+		BatchId:          &batch,
+		RecordType:       "customer",
+		BulkSubmit:       true,
+		SubmissionStatus: "NEW",
 	}
-	template := shopify.SyncMetadata{
-		CompanyName:         company.Name,
-		CompanyId:           company.ExternalId,
-		Reseller:            company.Reseller,
-		Vendor:              company.Vendor,
-		PrimaryCompanyEmail: company.PrimaryCompanyEmail,
-		Company:             company,
-	}
-	for _, cnt := range company.Contacts {
-		elt := template
-		elt.ContactId = cnt.Id
-		elt.Contact = cnt
-		elt.Customer = cnt.Customer
-		elt.CustomerId = cnt.Customer.Id
-		//		elt.NoSyncZendesk = cnt.NoSyncZendesk
-		json, err := json.Marshal(elt)
-		if err != nil {
-			return []lbqueue.LogSyncRecord{}, err
+	go func() {
+		defer close(out)
+		for _, company := range companies {
+			template := shopify.SyncMetadata{
+				CompanyName:         company.Name,
+				CompanyId:           company.ExternalId,
+				Reseller:            company.Reseller,
+				Vendor:              company.Vendor,
+				PrimaryCompanyEmail: company.PrimaryCompanyEmail,
+				Company:             company,
+			}
+			base.CompanyId = company.ExternalId
+			base.SyncMdChecksum = company.Checksum
+			for _, contact := range company.Contacts {
+				dbRow := template
+				dbRow.ContactId = contact.Id
+				dbRow.Contact = contact
+				dbRow.Customer = contact.Customer
+				dbRow.CustomerId = contact.Customer.Id
+				//		elt.NoSyncZendesk = cnt.NoSyncZendesk
+
+				json, jerr := json.Marshal(dbRow)
+				if jerr != nil {
+					return
+				}
+				next := base
+				next.SyncMetadata = string(json)
+				next.RecordId = contact.Customer.Id
+				for _, dst := range destinations {
+					next.DestinationName = dst
+					next.LbCreate = time.Now()
+					out <- next
+				}
+			}
 		}
-		next := base
-		next.SyncMetadata = string(json)
-		ret = append(ret, next)
-	}
-	return ret, nil
+	}()
+	return out
 }

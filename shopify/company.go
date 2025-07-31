@@ -37,89 +37,75 @@ type (
 	}
 
 	CompanyConnection struct {
-		Nodes    []Company
-		PageInfo *PageInfo
+		Nodes    []Company `json:"nodes"`
+		PageInfo *PageInfo `json:"pageInfo"`
 	}
 
 	// https://shopify.dev/docs/api/admin-graphql/2024-10/objects/CompanyLocation
 	CompanyLocation struct {
-		CreatedAt          time.Time
-		Currency           string
-		DefaultCursor      string
-		ExternalId         string
-		HasTimelineComment bool
-		Id                 string
-		Locale             string
-		Name               string
-		Note               string
-		OrderCount         int
-		Phone              string
-		TaxExemptions      []string
-		TaxRegistrationId  string
-		UpdatedAt          time.Time
-		BillingAddress     Address
+		CreatedAt          time.Time      `json:"createdAt"`
+		Currency           string         `json:"currency"`
+		DefaultCursor      string         `json:"defaultCursor"`
+		ExternalId         string         `json:"externalId"`
+		HasTimelineComment bool           `json:"hasTimelineComment"`
+		Id                 string         `json:"id"`
+		Locale             string         `json:"locale"`
+		Name               string         `json:"name"`
+		Note               string         `json:"note"`
+		OrderCount         int            `json:"orderCount"`
+		Phone              string         `json:"phone"`
+		TaxExemptions      []string       `json:"taxExemptions"`
+		TaxRegistrationId  string         `json:"taxRegistrationId"`
+		UpdatedAt          time.Time      `json:"updatedAt"`
+		BillingAddress     Address        `json:"billingAddress"`
 		Other              map[string]any `mapstructure:",remain"`
 	}
 
 	Locations struct {
-		Nodes    []CompanyLocation
-		PageInfo *PageInfo
+		Nodes    []CompanyLocation `json:"nodes"`
+		PageInfo *PageInfo         `json:"pageInfo"`
 	}
 
 	// https://shopify.dev/docs/api/admin-graphql/2024-10/objects/CompanyAddress
 	Address struct {
-		Address1         string
-		Address2         string
-		City             string
-		CompanyName      string
-		Country          string
-		CountryCode      string
-		CreatedAt        time.Time
-		FirstName        string
-		FormattedAddress []string
-		FormattedArea    string
-		Id               string
-		LastName         string
-		Phone            string
-		Province         string
-		Recipient        string
-		UpdatedAt        time.Time
-		Zip              string
-		ZoneCode         string
+		Address1         string    `json:"address1"`
+		Address2         string    `json:"address2"`
+		City             string    `json:"city"`
+		CompanyName      string    `json:"companyName"`
+		Country          string    `json:"country"`
+		CountryCode      string    `json:"countryCode"`
+		CreatedAt        time.Time `json:"createdAt"`
+		FirstName        string    `json:"firstName"`
+		FormattedAddress []string  `json:"formattedAddress"`
+		FormattedArea    string    `json:"formattedArea"`
+		Id               string    `json:"id"`
+		LastName         string    `json:"lastName"`
+		Phone            string    `json:"phone"`
+		Province         string    `json:"province"`
+		Recipient        string    `json:"recipient"`
+		UpdatedAt        time.Time `json:"updatedAt"`
+		Zip              string    `json:"zip"`
+		ZoneCode         string    `json:"zoneCode"`
 	}
 
 	// https://shopify.dev/docs/api/admin-graphql/2024-10/objects/Company
 	Company struct {
-		ContactCount       int
-		CreatedAt          time.Time
-		CustomerSince      time.Time
-		ExternalId         string
-		HasTimelineComment bool
-		Id                 string
-		LifetimeDuration   string
-		Name               string
-		Note               string
-		UpdatedAt          time.Time
-		LocationsCount     Count
-		Locations          Locations
-		Contacts           Contacts
-		Other              map[string]any `mapstructure:",remain"`
-		// metafields(first: 10) {
-		//     nodes {
-		//         key
-		//         type
-		//         updatedAt
-		//         value
-		//     }
-		// }
-		Metafields MetafieldConnection
-		// metafield(key: "vendor") {
-		//     key
-		//     type
-		//     updatedAt
-		//     value
-		// }
-		Metafield Metafield
+		ContactCount       int                 `json:"contactCount"`
+		CreatedAt          time.Time           `json:"createdAt"`
+		CustomerSince      time.Time           `json:"customerSince"`
+		ExternalId         string              `json:"externalId"`
+		HasTimelineComment bool                `json:"hasTimelineComment"`
+		Id                 string              `json:"id"`
+		LifetimeDuration   string              `json:"lifetimeDuration"`
+		Name               string              `json:"name"`
+		Note               string              `json:"note"`
+		UpdatedAt          time.Time           `json:"updatedAt"`
+		LocationsCount     Count               `json:"locationsCount"`
+		Locations          Locations           `json:"locations"`
+		Contacts           Contacts            `json:"contacts"`
+		Other              map[string]any      `mapstructure:",remainOther"`
+		Metafields         MetafieldConnection `json:"metafields"`
+		Metafield          Metafield           `json:"metafield"`
 	}
 
 	/// DetailCompany is used to pass information on company over the

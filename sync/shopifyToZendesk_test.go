@@ -6,9 +6,12 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"gitlab.com/joze-liburn/uibakery/lbqueue"
 	"gitlab.com/joze-liburn/uibakery/shopify"
 )
 
+// This test is based on the two records from public.log_sync_record, with
+// lb_id in (202, 210)
 func TestGetRecords(t *testing.T) {
 	jose := shopify.Customer{
 		CreatedAt:               time.Date(2025, time.May, 29, 15, 18, 10, 0, time.UTC),
@@ -368,298 +371,185 @@ func TestGetRecords(t *testing.T) {
 	}
 }
 
-/*
-{
-    "company_name": "Creativo3D",
-    "company_id": "gid://shopify/Company/2185199784",
-    "reseller": true,
-    "vendor": true,
-    "primary_company_email": "info@creativo3d.com",
-    "company": {
-        "results": {
-            "contactCount": 1,
-            "createdAt": "2025-05-29T15:24:39Z",
-            "customerSince": "2025-05-29T15:24:39Z",
-            "externalId": "A0F315E9C48C",
-            "hasTimelineComment": false,
-            "id": "gid://shopify/Company/2185199784",
-            "lifetimeDuration": "13 days",
-            "name": "Creativo3D",
-            "note": "BF9B60168A88",
-            "updatedAt": "2025-06-09T23:27:10Z",
-            "locationsCount": {
-                "count": 1
-            },
-            "locations": {
-                "nodes": [
-                    {
-                    "createdAt": "2025-05-29T15:24:39Z",
-                    "currency": "GTQ",
-                    "defaultCursor": "eyJkaXJlY3Rpb24iOiJuZXh0IiwibGFzdF9pZCI6Mjk1ODEzMTM2OCwibGFzdF92YWx1ZSI6IjI5NTgxMzEzNjgiLCJsaW1pdCI6MSwic29ydF9kaXIiOiJhc2MiLCJzb3J0X2ZpZWxkcyI6ImlkIn0=",
-                    "externalId": null,
-                    "hasTimelineComment": false,
-                    "id": "gid://shopify/CompanyLocation/2958131368",
-                    "locale": "en",
-                    "name": "24 Avenida 13-20",
-                    "note": null,
-                    "orderCount": 1,
-                    "phone": null,
-                    "taxExemptions": [],
-                    "taxRegistrationId": "1209827-2",
-                    "updatedAt": "2025-05-29T15:24:41Z",
-                    "billingAddress": {
-                        "address1": "24 Avenida 13-20",
-                        "address2": null,
-                        "city": "Ciudad de Guatemala",
-                        "companyName": "Creativo3D",
-                        "country": "Guatemala",
-                        "countryCode": "GT",
-                        "createdAt": "2025-05-29T15:24:40Z",
-                        "firstName": "José",
-                        "formattedAddress": [
-                        "Creativo3D",
-                        "24 Avenida 13-20",
-                        "Ciudad de Guatemala GUA",
-                        "01007",
-                        "Guatemala"
-                        ],
-                        "formattedArea": "Ciudad de Guatemala GU, Guatemala",
-                        "id": "gid://shopify/CompanyAddress/2581856424",
-                        "lastName": "Letona",
-                        "phone": "+50237614657",
-                        "province": "Guatemala",
-                        "recipient": "Creativo3D",
-                        "updatedAt": "2025-05-29T15:24:40Z",
-                        "zip": "01007",
-                        "zoneCode": "GUA"
-                    }
-                    }
-                ]
-            },
-            "contacts": {
-                "nodes": [
-                    {
-                    "createdAt": "2025-05-29T15:24:41Z",
-                    "id": "gid://shopify/CompanyContact/895418536",
-                    "isMainContact": true,
-                    "lifetimeDuration": "13 days",
-                    "locale": "en",
-                    "title": null,
-                    "updatedAt": "2025-05-29T15:24:41Z",
-                    "customer": {
-                        "canDelete": false,
-                        "createdAt": "2025-05-29T15:18:10Z",
-                        "dataSaleOptOut": false,
-                        "displayName": "José Letona",
-                        "email": "info@creativo3d.com",
-                        "firstName": "José",
-                        "hasTimelineComment": false,
-                        "id": "gid://shopify/Customer/8450627043496",
-                        "lastName": "Letona",
-                        "legacyResourceId": "8450627043496",
-                        "lifetimeDuration": "13 days",
-                        "locale": "en-GT",
-                        "multipassIdentifier": null,
-                        "note": "",
-                        "numberOfOrders": "1",
-                        "phone": "+50237614657",
-                        "productSubscriberStatus": "NEVER_SUBSCRIBED",
-                        "state": "DISABLED",
-                        "tags": [
-                        "B2B",
-                        "Login with Shop",
-                        "Shop"
-                        ],
-                        "updatedAt": "2025-06-04T23:17:03Z",
-                        "validEmailAddress": true,
-                        "verifiedEmail": true
-                    }
-                    }
-                ]
-            },
-            "metafields": {
-                "nodes": [
-                    {
-                        "key": "primary_company_email",
-                        "type": "single_line_text_field",
-                        "updatedAt": "2025-06-09T23:26:37Z",
-                        "value": "info@creativo3d.com"
-                    },
-                    {
-                        "key": "vendor",
-                        "type": "boolean",
-                        "updatedAt": "2025-06-09T23:26:37Z",
-                        "value": "true"
-                    },
-                    {
-                        "key": "reseller",
-                        "type": "boolean",
-                        "updatedAt": "2025-06-09T23:26:37Z",
-                        "value": "true"
-                    },
-                    {
-                        "key": "domains",
-                        "type": "single_line_text_field",
-                        "updatedAt": "2025-06-09T23:26:37Z",
-                        "value": "creativo3d.com"
-                    },
-                    {
-                        "key": "vat_number",
-                        "type": "single_line_text_field",
-                        "updatedAt": "2025-06-09T23:26:37Z",
-                        "value": "1209827-2"
-                    },
-                    {
-                        "key": "tax_setting",
-                        "type": "single_line_text_field",
-                        "updatedAt": "2025-05-29T15:24:40Z",
-                        "value": "Don't collect tax"
-                    },
-                    {
-                        "key": "ula_document",
-                        "type": "file_reference",
-                        "updatedAt": "2025-05-29T15:24:40Z",
-                        "value": "gid://shopify/GenericFile/34844992241832"
-                    },
-                    {
-                        "key": "last_signed_reseller_agreement_dt",
-                        "type": "date",
-                        "updatedAt": "2025-05-29T15:24:40Z",
-                        "value": "2025-05-29"
-                    }
-                ]
-            },
-            "metafield": null
-        },
-        "name": "Creativo3D",
-        "external_id": "gid://shopify/Company/2185199784",
-        "group_id": 20488928016667,
-        "do_not_sync_to_zendesk": false,
-        "tags": [
-            "vendor"
-        ],
-        "vendor": true,
-        "reseller": true,
-        "domain_names": [
-            "creativo3d.com"
-        ],
-        "organization_fields": {
-            "sync_shopify_company": false
-        },
-        "contacts": [
-            {
-                "createdAt": "2025-05-29T15:24:41Z",
-                "id": "gid://shopify/CompanyContact/895418536",
-                "isMainContact": true,
-                "lifetimeDuration": "13 days",
-                "locale": "en",
-                "title": null,
-                "updatedAt": "2025-05-29T15:24:41Z",
-                "customer": {
-                    "canDelete": false,
-                    "createdAt": "2025-05-29T15:18:10Z",
-                    "dataSaleOptOut": false,
-                    "displayName": "José Letona",
-                    "email": "info@creativo3d.com",
-                    "firstName": "José",
-                    "hasTimelineComment": false,
-                    "id": "gid://shopify/Customer/8450627043496",
-                    "lastName": "Letona",
-                    "legacyResourceId": "8450627043496",
-                    "lifetimeDuration": "13 days",
-                    "locale": "en-GT",
-                    "multipassIdentifier": null,
-                    "note": "",
-                    "numberOfOrders": "1",
-                    "phone": "+50237614657",
-                    "productSubscriberStatus": "NEVER_SUBSCRIBED",
-                    "state": "DISABLED",
-                    "tags": [
-                        "B2B",
-                        "Login with Shop",
-                        "Shop"
-                    ],
-                    "updatedAt": "2025-06-04T23:17:03Z",
-                    "validEmailAddress": true,
-                    "verifiedEmail": true
-                }
-            }
-        ],
-        "primary_company_email": "info@creativo3d.com",
-        "vat_number": "1209827-2",
-        "tax_setting": "Don't collect tax",
-        "ula_document": "gid://shopify/GenericFile/34844992241832",
-        "last_signed_reseller_agreement_dt": "2025-05-29",
-        "shared_tickets": true,
-        "checksum": 361772
-    },
-    "contact": {
-        "createdAt": "2025-05-29T15:24:41Z",
-        "id": "gid://shopify/CompanyContact/895418536",
-        "isMainContact": true,
-        "lifetimeDuration": "13 days",
-        "locale": "en",
-        "title": null,
-        "updatedAt": "2025-05-29T15:24:41Z",
-        "customer": {
-            "canDelete": false,
-            "createdAt": "2025-05-29T15:18:10Z",
-            "dataSaleOptOut": false,
-            "displayName": "José Letona",
-            "email": "info@creativo3d.com",
-            "firstName": "José",
-            "hasTimelineComment": false,
-            "id": "gid://shopify/Customer/8450627043496",
-            "lastName": "Letona",
-            "legacyResourceId": "8450627043496",
-            "lifetimeDuration": "13 days",
-            "locale": "en-GT",
-            "multipassIdentifier": null,
-            "note": "",
-            "numberOfOrders": "1",
-            "phone": "+50237614657",
-            "productSubscriberStatus": "NEVER_SUBSCRIBED",
-            "state": "DISABLED",
-            "tags": [
-                "B2B",
-                "Login with Shop",
-                "Shop"
-            ],
-            "updatedAt": "2025-06-04T23:17:03Z",
-            "validEmailAddress": true,
-            "verifiedEmail": true
-        }
-    },
-    "contact_id": "gid://shopify/CompanyContact/895418536",
-    "customer": {
-    "canDelete": false,
-    "createdAt": "2025-05-29T15:18:10Z",
-    "dataSaleOptOut": false,
-    "displayName": "José Letona",
-    "email": "info@creativo3d.com",
-    "firstName": "José",
-    "hasTimelineComment": false,
-    "id": "gid://shopify/Customer/8450627043496",
-    "lastName": "Letona",
-    "legacyResourceId": "8450627043496",
-    "lifetimeDuration": "13 days",
-    "locale": "en-GT",
-    "multipassIdentifier": null,
-    "note": "",
-    "numberOfOrders": "1",
-    "phone": "+50237614657",
-    "productSubscriberStatus": "NEVER_SUBSCRIBED",
-    "state": "DISABLED",
-    "tags": [
-        "B2B",
-        "Login with Shop",
-        "Shop"
-    ],
-    "updatedAt": "2025-06-04T23:17:03Z",
-    "validEmailAddress": true,
-    "verifiedEmail": true
-    },
-    "customer_id": "gid://shopify/Customer/8450627043496",
-    "checksum": 501036
+func TestDetailToSync(t *testing.T) {
+	c1 := shopify.Contact{Id: "1", Title: "Contact 1", Customer: shopify.Customer{Id: "11"}}
+	c2 := shopify.Contact{Id: "2", Title: "Contact 2", Customer: shopify.Customer{Id: "12"}}
+	c3 := shopify.Contact{Id: "3", Title: "Contact 3", Customer: shopify.Customer{Id: "13"}}
+	com1 := (&shopify.Company{
+		Id:           "101",
+		ExternalId:   "gid://company/101",
+		ContactCount: 2,
+		Contacts: shopify.Contacts{
+			Nodes: []shopify.Contact{c1, c3},
+		},
+	}).ToDetail()
+
+	com2 := (&shopify.Company{
+		Id:           "102",
+		ExternalId:   "gid://company/102",
+		ContactCount: 1,
+		Contacts: shopify.Contacts{
+			Nodes: []shopify.Contact{c2},
+		},
+	}).ToDetail()
+
+	batchId := time.Now()
+	tests := []struct {
+		name         string
+		companies    []shopify.DetailCompany
+		destinations []string
+		want         map[string]lbqueue.LogSyncRecord
+	}{
+		{
+			name:         "single",
+			companies:    []shopify.DetailCompany{com2},
+			destinations: []string{"1"},
+			want: map[string]lbqueue.LogSyncRecord{
+				"gid://company/102-12-1": {
+					Submitter:        "single",
+					BatchId:          &batchId,
+					DestinationName:  "1",
+					RecordType:       "customer",
+					RecordId:         "12",
+					CompanyId:        "gid://company/102",
+					SubmissionStatus: "NEW",
+					BulkSubmit:       true,
+					LbCreate:         batchId,
+				},
+			},
+		},
+		{
+			name:         "normal",
+			companies:    []shopify.DetailCompany{com1, com2},
+			destinations: []string{"1", "2", "3"},
+			want: map[string]lbqueue.LogSyncRecord{
+				"gid://company/101-11-1": {
+					Submitter:        "normal",
+					BatchId:          &batchId,
+					DestinationName:  "1",
+					RecordType:       "customer",
+					RecordId:         "11",
+					CompanyId:        "gid://company/101",
+					SubmissionStatus: "NEW",
+					BulkSubmit:       true,
+					LbCreate:         batchId,
+				},
+				"gid://company/101-11-2": {
+					Submitter:        "normal",
+					BatchId:          &batchId,
+					DestinationName:  "2",
+					RecordType:       "customer",
+					RecordId:         "11",
+					CompanyId:        "gid://company/101",
+					SubmissionStatus: "NEW",
+					BulkSubmit:       true,
+					LbCreate:         batchId,
+				},
+				"gid://company/101-11-3": {
+					Submitter:        "normal",
+					BatchId:          &batchId,
+					DestinationName:  "3",
+					RecordType:       "customer",
+					RecordId:         "11",
+					CompanyId:        "gid://company/101",
+					SubmissionStatus: "NEW",
+					BulkSubmit:       true,
+					LbCreate:         batchId,
+				},
+				"gid://company/102-12-1": {
+					Submitter:        "normal",
+					BatchId:          &batchId,
+					DestinationName:  "1",
+					RecordType:       "customer",
+					RecordId:         "12",
+					CompanyId:        "gid://company/102",
+					SubmissionStatus: "NEW",
+					BulkSubmit:       true,
+					LbCreate:         batchId,
+				},
+				"gid://company/102-12-2": {
+					Submitter:        "normal",
+					BatchId:          &batchId,
+					DestinationName:  "2",
+					RecordType:       "customer",
+					RecordId:         "12",
+					CompanyId:        "gid://company/102",
+					SubmissionStatus: "NEW",
+					BulkSubmit:       true,
+					LbCreate:         batchId,
+				},
+				"gid://company/102-12-3": {
+					Submitter:        "normal",
+					BatchId:          &batchId,
+					DestinationName:  "3",
+					RecordType:       "customer",
+					RecordId:         "12",
+					CompanyId:        "gid://company/102",
+					SubmissionStatus: "NEW",
+					BulkSubmit:       true,
+					LbCreate:         batchId,
+				},
+				"gid://company/101-13-1": {
+					Submitter:        "normal",
+					BatchId:          &batchId,
+					DestinationName:  "1",
+					RecordType:       "customer",
+					RecordId:         "13",
+					CompanyId:        "gid://company/101",
+					SubmissionStatus: "NEW",
+					BulkSubmit:       true,
+					LbCreate:         batchId,
+				},
+				"gid://company/101-13-2": {
+					Submitter:        "normal",
+					BatchId:          &batchId,
+					DestinationName:  "2",
+					RecordType:       "customer",
+					RecordId:         "13",
+					CompanyId:        "gid://company/101",
+					SubmissionStatus: "NEW",
+					BulkSubmit:       true,
+					LbCreate:         batchId,
+				},
+				"gid://company/101-13-3": {
+					Submitter:        "normal",
+					BatchId:          &batchId,
+					DestinationName:  "3",
+					RecordType:       "customer",
+					RecordId:         "13",
+					CompanyId:        "gid://company/101",
+					SubmissionStatus: "NEW",
+					BulkSubmit:       true,
+					LbCreate:         batchId,
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			see := map[string]bool{}
+			rows := DetailsToSync(test.companies, test.destinations, test.name, batchId)
+			for got := range rows {
+				recId := got.CompanyId + "-" + got.RecordId + "-" + got.DestinationName
+				rec, ok := test.want[recId]
+				if !ok {
+					t.Errorf("%s: Not expected company %q, record %q, destination %q", test.name, got.CompanyId, got.RecordId, got.DestinationName)
+				}
+				// LbCreate is a time stamp
+				// SyncMetadata is a json representation of the record
+				// we shall simplify test by resetting these two
+				got.LbCreate = batchId
+				got.SyncMetadata = ""
+				if df := cmp.Diff(rec, got); df != "" {
+					t.Errorf("%s: -want +got\n%s", test.name, df)
+				}
+				see[recId] = true
+			}
+			if len(see) != len(test.want) {
+				t.Errorf("%s: got %d different records, expected %d", test.name, len(see), len(test.want))
+				t.Log(see)
+			}
+		})
+	}
 }
-*/

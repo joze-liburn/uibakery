@@ -29,8 +29,8 @@ type (
 	//
 	// Only implement forward pagination - it is universally supported.
 	PageInfo struct {
-		HasNextPage bool
-		EndCursor   string
+		HasNextPage bool   `json:"hasNextPage"`
+		EndCursor   string `json:"endCursor"`
 	}
 )
 
