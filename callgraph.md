@@ -25,7 +25,6 @@ graph LR
   aut07(actionShopifyGetCompaniesList) --> aut08(actionShopifyGetCompaniesListDetails)
   aut07(actionShopifyGetCompaniesList) --> aut09(actionShopifyGetCompanyIDs)
   aut08(actionShopifyGetCompaniesListDetails) --> aut11(actionShopifyGetCompanyData)
-  aut09(actionShopifyGetCompanyIDs) --> aut11(actionShopifyGetCompanyData)
   aut13(cronShopifyToZenSync) --> aut09(actionShopifyGetCompanyIDs)
   aut13(cronShopifyToZenSync) --> aut12(actionTagShopifyVendorUsers)
   aut13(cronShopifyToZenSync) --> aut15(actionSyncShopifyCompany)
