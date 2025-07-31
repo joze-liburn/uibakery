@@ -11,21 +11,21 @@ import (
 
 type (
 	LogSyncRecord struct {
-		LbId             int32
-		Submitter        string
-		BatchId          *time.Time
-		DestinationName  string
-		RecordType       string
-		RecordId         string
-		CompanyId        string
-		SubmissionStatus string
-		LbCreate         time.Time
-		LbUpdate         *time.Time
-		LbComplete       *time.Time
-		SyncMetadata     string
-		PsGuid           string
-		BulkSubmit       bool
-		SyncMdChecksum   int64
+		LbId             int32      `json:"lb_id,omitempty"`
+		Submitter        string     `json:"submitter,omitempty"`
+		BatchId          *time.Time  `json:"batch_id,omitempty"`
+		DestinationName  string     `json:"destination_name,omitempty"`
+		RecordType       string     `json:"record_type,omitempty"`
+		RecordId         string     `json:"record_id,omitempty"`
+		CompanyId        string     `json:"company_id,omitempty"`
+		SubmissionStatus string     `json:"submission_status,omitempty"`
+		LbCreate         time.Time  `json:"lb_create_ts,omitempty"`
+		LbUpdate         *time.Time `json:"lb_update_ts,omitempty"`
+		LbComplete       *time.Time `json:"lb_complete_ts,omitempty"`
+		SyncMetadata     string     `json:"sync_metadata,omitempty"`
+		PsGuid           string     `json:"ps_guid,omitempty"`
+		BulkSubmit       bool       `json:"bulk_submit,omitempty"`
+		SyncMdChecksum   int64      `json:"sync_md_checksum,omitempty"`
 	}
 
 	LbDb struct {

@@ -91,7 +91,7 @@ type (
 	// https://shopify.dev/docs/api/admin-graphql/2024-10/objects/Company
 	Company struct {
 		ContactCount       int
-		CreatedAt          *time.Time
+		CreatedAt          time.Time
 		CustomerSince      time.Time
 		ExternalId         string
 		HasTimelineComment bool
@@ -112,30 +112,66 @@ type (
 		//         value
 		//     }
 		// }
+		Metafields MetafieldConnection
 		// metafield(key: "vendor") {
 		//     key
 		//     type
 		//     updatedAt
 		//     value
 		// }
+		Metafield Metafield
 	}
 
 	/// DetailCompany is used to pass information on company over the
 	// database based queue (compatibility with UI Bakery code).
 	DetailCompany struct {
-		Result             Company        `json:"result"`
-		Name               string         `json:"name"`
-		ExternalId         string         `json:"external_id"`
-		GroupId            string         `json:"group_id"`
-		NoSyncZendesk      bool           `json:"do_not_sync_to_zendesk"`
-		Tags               []string       `json:"tags"`
-		Vendor             bool           `json:"vendor"`
-		Reseller           bool           `json:"reseller"`
-		DomainNames        []string       `json:"domain_names"`
-		OrganizationFields map[string]any `json:"organization_fields"`
-		Contacts           []Contact      `json:"contacts"`
+		Result                      Company        `json:"results"`
+		Name                        string         `json:"name"`
+		ExternalId                  string         `json:"external_id"`
+		GroupId                     int            `json:"group_id"`
+		NoSyncZendesk               bool           `json:"do_not_sync_to_zendesk"`
+		Tags                        []string       `json:"tags"`
+		Vendor                      bool           `json:"vendor"`
+		Reseller                    bool           `json:"reseller"`
+		DomainNames                 []string       `json:"domain_names"`
+		OrganizationFields          map[string]any `json:"organization_fields"`
+		Contacts                    []Contact      `json:"contacts"`
+		PrimaryCompanyEmail         string         `json:"primary_company_email"`
+		VatNumber                   string         `json:"vat_number,omitempty"`
+		TaxSettings                 string         `json:"tax_setting,omitempty"`
+		UlaDocument                 string         `json:"ula_document,omitempty"`
+		LastSignedResellerAgreement string         `json:"last_signed_reseller_agreement_dt"`
+		SharedTickets               bool           `json:"shared_tickets"`
+		Checksum                    int64          `json:"checksum"`
+	}
+
+	SyncMetadata struct {
+		CompanyName         string        `json:"company_name"`
+		CompanyId           string        `json:"company_id"`
+		Reseller            bool          `json:"reseller"`
+		Vendor              bool          `json:"vendor"`
+		PrimaryCompanyEmail string        `json:"primary_company_email"`
+		Company             DetailCompany `json:"company"`
+		Contact             Contact       `json:"contact"`
+		ContactId           string        `json:"contact_id"`
+		Customer            Customer      `json:"customer"`
+		CustomerId          string        `json:"customer_id"`
+		Checksum            int64         `json:"checksum"`
+		NoSyncZendesk       bool          `json:"do_not_sync_to_zendesk"`
+		// Unknown             jsontext.Value `json:",unknown"` // TBD: GO 1.25
 	}
 )
+
+// GetMetafield returns the value of a given metafield. Second result indicates
+// if the metafield was found.
+func (c *Company) GetMetafield(key string) (string, bool) {
+	for _, mf := range c.Metafields.Nodes {
+		if mf.Key == key {
+			return mf.Value, true
+		}
+	}
+	return "", false
+}
 
 func stringToDateTimeHook(f reflect.Type, t reflect.Type, data any) (any, error) {
 	if t == reflect.TypeOf(time.Time{}) && f == reflect.TypeOf("") {
@@ -346,12 +382,13 @@ func (from DetailCompany) InitArrays() DetailCompany {
 
 // ToDetail makes baroque version of the Company structure for exchange through
 // the database queue.
+// This is the core body of actionShopifyGetCompanyData
 func (c *Company) ToDetail() DetailCompany {
 	ret := DetailCompany{}.InitArrays()
 	ret.Result = *c
 	ret.Name = c.Name
 	ret.ExternalId = c.ExternalId
-	ret.GroupId = ""
+	ret.GroupId = 0
 	ret.NoSyncZendesk = false
 	ret.Vendor = false
 	ret.Reseller = false
