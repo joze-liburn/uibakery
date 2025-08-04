@@ -10,10 +10,13 @@ import (
 )
 
 type (
+	// LogSyncRecord represents a row in a database and encapsuates
+	// (far beyond minimum) parameters for a single object to a single sink
+	// synchronization (source is always Shopify).
 	LogSyncRecord struct {
 		LbId             int32      `json:"lb_id,omitempty"`
 		Submitter        string     `json:"submitter,omitempty"`
-		BatchId          *time.Time  `json:"batch_id,omitempty"`
+		BatchId          *time.Time `json:"batch_id,omitempty"`
 		DestinationName  string     `json:"destination_name,omitempty"`
 		RecordType       string     `json:"record_type,omitempty"`
 		RecordId         string     `json:"record_id,omitempty"`
@@ -28,6 +31,7 @@ type (
 		SyncMdChecksum   int64      `json:"sync_md_checksum,omitempty"`
 	}
 
+	// LbDb is a database handle.
 	LbDb struct {
 		opened bool
 		user   string
@@ -36,6 +40,7 @@ type (
 	}
 )
 
+// GetTime converts database nullable timestamp null values into Go's nil.
 func GetTime(tm sql.NullTime) *time.Time {
 	if !tm.Valid {
 		return nil
@@ -49,6 +54,7 @@ func GetTime(tm sql.NullTime) *time.Time {
 	return &res
 }
 
+// GetTime converts database nullable string null values into Go's empty strings.
 func GetString(s sql.NullString) string {
 	if !s.Valid {
 		return ""
@@ -61,10 +67,12 @@ func GetString(s sql.NullString) string {
 	return v.(string)
 }
 
+// IsOpened verifies the database is opened.
 func (db *LbDb) IsOpened() bool {
 	return db.opened
 }
 
+// Open opens a database.
 func (db *LbDb) Open(user string, secret string, host string, port uint, database string) error {
 	var err error
 	db.user = user
@@ -79,7 +87,7 @@ func (db *LbDb) Open(user string, secret string, host string, port uint, databas
 
 // ClaimRecords claims up to max unclaimed records from the database, and
 // returns a claim id.
-func (db *LbDb) ClaimRecrds(max int) (string, int, error) {
+func (db *LbDb) ClaimRecords(max uint) (string, int, error) {
 	guid, err := uuid.NewRandom()
 	if err != nil {
 		return "", 0, err
@@ -107,7 +115,7 @@ where
     lsr.lb_id = batch.lb_id;
 `, guid.String(), max)
 	if err != nil {
-		return "", 0, err
+		return "", 0, fmt.Errorf("%w -- checked a secret?: ", err)
 	}
 	rows, err := res.RowsAffected()
 	if err != nil {
@@ -116,6 +124,29 @@ where
 	return guid.String(), int(rows), err
 }
 
+// UnclaimRecords claims up to max unclaimed records from the database, and
+// returns a claim id.
+func (db *LbDb) UnclaimRecords(claim string) (int, error) {
+	res, err := db.db.Exec(`update
+    public.log_sync_record lsr
+set
+    ps_guid = null
+where
+    ps_guid = $1
+`, claim)
+	if err != nil {
+		return 0, fmt.Errorf("%w -- checked a secret?: ", err)
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rows), err
+}
+
+// GetClaimedRecords reads claimed records from the database. Parameter claim
+// should be a value retured by ClaimRecords (but feeding some random values
+// will simply return an empty set).
 func (db *LbDb) GetClaimedRecords(claim string) ([]LogSyncRecord, error) {
 	rows, err := db.db.Query(`select
     lb_id

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"gitlab.com/joze-liburn/uibakery/cmd"
 	"gitlab.com/joze-liburn/uibakery/lbqueue"
 	"gitlab.com/joze-liburn/uibakery/shopify"
 )
@@ -19,7 +20,7 @@ func TestLbqueue() {
 		return
 	}
 	fmt.Println("Database opened.")
-	g, c, err := db.ClaimRecrds(10)
+	g, c, err := db.ClaimRecords(10)
 	if err != nil {
 		fmt.Printf("ClaimRecords() retured an error %s\n", err)
 		return
@@ -55,5 +56,5 @@ func TestShopify(limit int) {
 }
 
 func main() {
-	TestLbqueue()
+	cmd.Execute()
 }
