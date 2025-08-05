@@ -196,8 +196,9 @@ func queueListClaimsRun(cmd *cobra.Command, args []string) {
 		fmt.Fprintln(os.Stderr, err)
 	}
 	var status *string
-	stat, ok := cmd.Flags().GetString("status")
-	if ok == nil {
+
+	if cmd.Flags().Changed("status") {
+		stat, _ := cmd.Flags().GetString("status")
 		status = &stat
 	}
 	claims, err := db.ListClaims(status)
