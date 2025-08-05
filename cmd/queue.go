@@ -107,7 +107,7 @@ func queueCountRun(cmd *cobra.Command, args []string) {
 	if err := db.Open(viper.GetString("username"), viper.GetString("secret"), viper.GetString("hostname"), viper.GetUint("port"), viper.GetString("database")); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
-	stats, err := db.GetQueueStats()
+	stats, err := db.GetQueueCounts()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "GetQueueStats() retured an error %s\n", err)
 		return

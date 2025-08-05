@@ -228,9 +228,9 @@ where
 	return result, nil
 }
 
-// GetQueueStats obtains a count of records by status, destination, and claim
+// GetQueueCounts obtains a count of records by status, destination, and claim
 // status (not by individual claims).
-func (db *LbDb) GetQueueStats() ([]QueueCount, error) {
+func (db *LbDb) GetQueueCounts() ([]QueueCount, error) {
 	rows, err := db.db.Query(`select
     submission_status
     , destination_name
@@ -267,8 +267,9 @@ group by
 	return result, nil
 }
 
-// GetQueueStats obtains a count of records by status, destination, and claim
-// status (not by individual claims).
+// ListClaims obtains claims from the database queue. If status is non-nil,
+// only records in this state are considered (so the list of the claims may
+// be shorter AND counts can change).
 func (db *LbDb) ListClaims(status *string) ([]Claim, error) {
 	rows, err := db.db.Query(`select
     ps_guid
