@@ -38,6 +38,21 @@ type (
 		addr   string
 		db     *sql.DB
 	}
+
+	// QueueCount hholds a count of records by destination, submission status
+	// and claim status.
+	QueueCount struct {
+		DestinationName  string
+		SubmissionStatus string
+		Claimed          bool
+		Count            uint
+	}
+
+	// Claim is a claim id and a count (of matching records).
+	Claim struct {
+		Id    string
+		Count uint
+	}
 )
 
 // GetTime converts database nullable timestamp null values into Go's nil.
@@ -88,6 +103,9 @@ func (db *LbDb) Open(user string, secret string, host string, port uint, databas
 // ClaimRecords claims up to max unclaimed records from the database, and
 // returns a claim id.
 func (db *LbDb) ClaimRecords(max uint) (string, int, error) {
+	if max == 0 {
+		return "", 0, nil
+	}
 	guid, err := uuid.NewRandom()
 	if err != nil {
 		return "", 0, err
@@ -206,6 +224,74 @@ where
 		row.PsGuid = GetString(ps_guid)
 		row.CompanyId = GetString(company_id)
 		result = append(result, row)
+	}
+	return result, nil
+}
+
+// GetQueueStats obtains a count of records by status, destination, and claim
+// status (not by individual claims).
+func (db *LbDb) GetQueueStats() ([]QueueCount, error) {
+	rows, err := db.db.Query(`select
+    submission_status
+    , destination_name
+    , case when ps_guid is null or ps_guid = '' or ps_guid = '?' then 0 else 1 end claimed
+    , count(1)
+from
+    log_sync_record
+group by
+    submission_status
+    , destination_name
+    , case when ps_guid is null or ps_guid = '' or ps_guid = '?' then 0 else 1 end`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	result := []QueueCount{}
+	for rows.Next() {
+		row := QueueCount{}
+		var (
+			claimed int
+			count   uint
+		)
+		err := rows.Scan(&row.SubmissionStatus,
+			&row.DestinationName,
+			&claimed,
+			&count)
+		if err != nil {
+			return result, err
+		}
+		row.Count = count
+		row.Claimed = claimed == 1
+		result = append(result, row)
+	}
+	return result, nil
+}
+
+// GetQueueStats obtains a count of records by status, destination, and claim
+// status (not by individual claims).
+func (db *LbDb) ListClaims(status *string) ([]Claim, error) {
+	rows, err := db.db.Query(`select
+    ps_guid
+    , count(1)
+from
+    log_sync_record
+where
+    ps_guid is not null and ps_guid <> '' and ps_guid <> '?'
+    and submission_status is not distinct from coalesce($1, submission_status)
+group by
+    ps_guid`, status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	result := []Claim{}
+	for rows.Next() {
+		var claim Claim
+		err := rows.Scan(&claim.Id, &claim.Count)
+		if err != nil {
+			return result, err
+		}
+		result = append(result, claim)
 	}
 	return result, nil
 }
