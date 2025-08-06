@@ -12,7 +12,7 @@ var (
 	// Used for flags.
 	cfgFile string
 
-	RootCmd = &cobra.Command{
+	rootCmd = &cobra.Command{
 		Use:   "uibakery",
 		Short: "A data synchromnization server.",
 		Long:  `uibakery is used to synchronize data from Shopify to ZenDesk and Criplex`,
@@ -21,7 +21,7 @@ var (
 
 // Execute executes the root command.
 func Execute() error {
-	if err := RootCmd.Execute(); err != nil {
+	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return err
 	}
@@ -31,32 +31,47 @@ func Execute() error {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.uibakery.json)")
-	RootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
-	viper.BindPFlag("useViper", RootCmd.PersistentFlags().Lookup("viper"))
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.uibakery.json)")
+	rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
+	viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper"))
 
-	viper.SetDefault("hostname", "localhost")
-	viper.SetDefault("port", 5431)
-	viper.SetDefault("username", "lb_ap_uibakery")
+	viper.SetDefault("db-hostname", "localhost")
+	viper.SetDefault("db-port", 5431)
+	viper.SetDefault("db-username", "lb_ap_uibakery")
+	viper.SetDefault("shp-hostname", "lightburn-software-llc.myshopify.com")
 
-	queueCmd.PersistentFlags().String("db-hostname", "", "hostname (localhost for SQL Auth Proxy)")
-	queueCmd.PersistentFlags().Uint16("db-port", 5432, "port number (5432 works for default SQL Auth Proxy)")
-	queueCmd.PersistentFlags().String("db-database", "lightburn", "Default database")
-	queueCmd.PersistentFlags().String("db-username", "lb_ap_uibakery", "User name (lb_ap_uibakery)")
-	queueCmd.PersistentFlags().String("db-secret", "", "Password")
-	queueCmd.PersistentFlags().String("zen-hostname", "https://lightburnsoftware.zendesk.com/api/v2/", "ZenDFesk API endpoint")
-	queueCmd.PersistentFlags().String("zen-secret", "", "Access token for ZenDFesk API")
-
-	for _, k := range []string{"db-hostname", "db-port", "db-database", "db-username", "db-secret", "zen-hostname", "zen-secret"} {
-		if err := viper.BindPFlag(k, queueCmd.PersistentFlags().Lookup(k)); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+	for _, flag := range []struct {
+		name   string
+		defval any
+		usage  string
+	}{
+		{name: "db-hostname", defval: "", usage: "hostname (localhost for SQL Auth Proxy)"},
+		{name: "db-port", defval: uint16(5432), usage: "port number (5432 works for default SQL Auth Proxy)"},
+		{name: "db-database", defval: "lightburn", usage: "Default database"},
+		{name: "db-username", defval: "lb_ap_uibakery", usage: "User name (lb_ap_uibakery)"},
+		{name: "db-secret", defval: "", usage: "Password"},
+		{name: "zen-hostname", defval: "https://lightburnsoftware.zendesk.com/api/v2/", usage: "ZenDFesk API endpoint"},
+		{name: "zen-secret", defval: "", usage: "Access token for ZenDFesk API"},
+		{name: "shp-hostname", defval: "lightburn-software-llc.myshopify.com", usage: "Shopify API endpoint"},
+		{name: "shp-secret", defval: "", usage: "Shopify API secret"},
+	} {
+		switch tval := flag.defval.(type) {
+		case string:
+			rootCmd.PersistentFlags().String(flag.name, tval, flag.usage)
+		case uint16:
+			rootCmd.PersistentFlags().Uint16(flag.name, tval, flag.usage)
+		default:
+			fmt.Fprintf(os.Stderr, "%s: type %T not implemented", flag.name, tval)
+		}
+		if err := viper.BindPFlag(flag.name, rootCmd.PersistentFlags().Lookup(flag.name)); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		}
 	}
 
-	RootCmd.AddCommand(versionCmd)
-	RootCmd.AddCommand(serverCmd)
-	RootCmd.AddCommand(queueCmd)
-	RootCmd.AddCommand(shopifyCmd)
+	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(serverCmd)
+	rootCmd.AddCommand(queueCmd)
+	rootCmd.AddCommand(shopifyCmd)
 }
 
 func initConfig() {

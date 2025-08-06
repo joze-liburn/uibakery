@@ -9,7 +9,6 @@ import (
 
 type (
 	Zendesk struct {
-
 		zdApi string
 		token string
 	}

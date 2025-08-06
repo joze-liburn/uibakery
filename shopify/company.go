@@ -267,7 +267,6 @@ query Companies($pgSize: Int!, $cursor: String, $query: String) {
 	go func() {
 		var count uint
 		defer close(out)
-		fmt.Println(params)
 		gqlResult, gqlerr := spfy.client.Graphql(query, params)
 		for {
 			if gqlerr != nil {

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"gitlab.com/joze-liburn/uibakery/cmd"
 	"gitlab.com/joze-liburn/uibakery/lbqueue"
@@ -40,17 +41,17 @@ func TestShopify(limit int) {
 	secret := os.Getenv("SHOPIFY_DEV_PWD")
 	client := shopify.New("lightburn-software-llc.myshopify.com", secret)
 	fmt.Println("Client created")
-	ids, err := client.GetCompaniesIds(limit)
-	if err != nil {
-		fmt.Println("Error", err)
-		return
-	}
-	fmt.Printf("Found %d ids\n", len(ids.Nodes))
-	for i, id := range ids.Nodes {
-		fmt.Printf("%d: %s\n", i, id.Id)
-	}
-	if ids.PageInfo.HasNextPage {
-		fmt.Println("There's more")
+	after := time.Date(2025, 8, 1, 0, 0, 0, 0, time.UTC)
+	ids := client.StreamCompaniesIds(limit, 27000, &after)
+
+	count := 0
+	for nodeerr := range ids {
+		if nodeerr.Err != nil {
+			fmt.Printf("ERROR: %s\n", nodeerr.Err)
+			return
+		}
+		fmt.Printf("%3d: %s\n", count, nodeerr.Company.Id)
+		count++
 	}
 	fmt.Println("Test Shopify ended.")
 }
