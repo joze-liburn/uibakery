@@ -2,6 +2,7 @@ package zendesk
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -46,11 +47,62 @@ func jsonToOrganizations(js []byte) (OrganizationResult, error) {
 }
 
 func (zd *Zendesk) GetOrganizations(page int) (OrganizationResult, error) {
-	rsp, err := zd.Get("organizations")
+	opts := []GetOptions{}
+	if page > 0 {
+		opts = append(opts, WithPage(page))
+	}
+	rsp, err := zd.Get("organizations", opts...)
 	if err != nil {
 		return OrganizationResult{}, err
 	}
 	return jsonToOrganizations(rsp)
+}
+
+type OrganizationError struct {
+	Organization Organization
+	Err          error
+}
+
+// StreamOrganizations provides a channel with successive Organizations. Every
+// organization in the channel has non-trivial ExternalId.
+func (zd *Zendesk) StreamOrganizations(pageSize int, maxCount uint) <-chan OrganizationError {
+	opts := []GetOptions{}
+	if pageSize > 0 {
+		opts = append(opts, WithPage(pageSize))
+	}
+	out := make(chan OrganizationError)
+	go func() {
+		defer close(out)
+		var count uint
+		rsp, geterr := zd.Get("organizations", opts...)
+		for {
+			if geterr != nil {
+				out <- OrganizationError{Err: geterr}
+				return
+			}
+			or, err := jsonToOrganizations(rsp)
+			if err != nil {
+				fmt.Printf("----- %s -----\n", zd.zdApi)
+				out <- OrganizationError{Err: err}
+				return
+			}
+			for _, org := range or.Organizations {
+				if len(org.ExternalId) == 0 {
+					continue
+				}
+				out <- OrganizationError{Organization: org}
+				count++
+				if count >= maxCount {
+					return
+				}
+			}
+			if !or.Meta.HasMore {
+				return
+			}
+			rsp, geterr = zd.Get("organizations", append(opts, StartAfter(or.Meta.AfterCursor))...)
+		}
+	}()
+	return out
 }
 
 func (zd *Zendesk) GetOrganizationsByExternalId(extId string, page int) (OrganizationResult, error) {

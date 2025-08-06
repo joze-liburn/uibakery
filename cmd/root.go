@@ -72,6 +72,7 @@ func init() {
 	rootCmd.AddCommand(serverCmd)
 	rootCmd.AddCommand(queueCmd)
 	rootCmd.AddCommand(shopifyCmd)
+	rootCmd.AddCommand(zendeskCmd)
 }
 
 func initConfig() {
