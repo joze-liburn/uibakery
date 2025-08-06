@@ -212,7 +212,7 @@ func companyFromGQL(data map[string]any) (Company, error) {
 }
 
 // GetCompaniesIds obtains list of client ids from Shopify.
-func (spfy *ShopifyOp) GetCompaniesIds(limit int) (CompanyConnection, error) {
+func (spfy *ShopifyOp) GetCompaniesIds(pageSize int) (CompanyConnection, error) {
 	query := `
 query Companies($pgSize: Int!, $cursor: String) {
   companies (first: $pgSize, after: $cursor) {
@@ -226,12 +226,74 @@ query Companies($pgSize: Int!, $cursor: String) {
   }
 }
 `
-	gqlResult, err := spfy.client.Graphql(query, map[string]any{"pgSize": limit})
+	gqlResult, err := spfy.client.Graphql(query, map[string]any{"pgSize": pageSize})
 	if err != nil {
 		return CompanyConnection{}, fmt.Errorf("%w: %v", errShopify, err)
 	}
 
 	return companiesFromGQL(gqlResult)
+}
+
+type CompanyError struct {
+	Company Company
+	Err     error
+}
+
+// StreamCompaniesIds obtains list of client ids from Shopify. It pages through
+// available results pageSize at the time, and puts results into the channel. It
+// stops streaming after maxCount results were obtained (put laaaaarge number
+// to get all results)
+func (spfy *ShopifyOp) StreamCompaniesIds(pageSize int, maxCount uint, after *time.Time) <-chan CompanyError {
+	query := `
+query Companies($pgSize: Int!, $cursor: String, $query: String) {
+  companies (first: $pgSize, after: $cursor, query: $query) {
+    nodes {
+      id
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+`
+	params := map[string]any{
+		"pgSize": pageSize,
+	}
+	if after != nil {
+		params["query"] = fmt.Sprintf("updated_at:>='%s'", (*after).Format(time.RFC3339)) // or "2006-01-02"
+	}
+	out := make(chan CompanyError)
+	go func() {
+		var count uint
+		defer close(out)
+		gqlResult, gqlerr := spfy.client.Graphql(query, params)
+		for {
+			if gqlerr != nil {
+				out <- CompanyError{Err: fmt.Errorf("%w: %v", errShopify, gqlerr)}
+				return
+			}
+
+			data, err := companiesFromGQL(gqlResult)
+			if err != nil {
+				out <- CompanyError{Err: err}
+				return
+			}
+			for _, node := range data.Nodes {
+				out <- CompanyError{Company: node}
+				count++
+				if count >= maxCount {
+					return
+				}
+			}
+			if !data.PageInfo.HasNextPage {
+				break
+			}
+			params["cursor"] = data.PageInfo.EndCursor
+			gqlResult, gqlerr = spfy.client.Graphql(query, params)
+		}
+	}()
+	return out
 }
 
 func GetCompanyDetails(client *gopify.Client) (Company, error) {

@@ -107,7 +107,7 @@ func queueCountRun(cmd *cobra.Command, args []string) {
 	if err := db.Open(viper.GetString("username"), viper.GetString("secret"), viper.GetString("hostname"), viper.GetUint("port"), viper.GetString("database")); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
-	stats, err := db.GetQueueStats()
+	stats, err := db.GetQueueCounts()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "GetQueueStats() retured an error %s\n", err)
 		return
@@ -192,12 +192,13 @@ func printTable(stats []lbqueue.QueueCount) {
 
 func queueListClaimsRun(cmd *cobra.Command, args []string) {
 	db := &lbqueue.LbDb{}
-	if err := db.Open(viper.GetString("username"), viper.GetString("secret"), viper.GetString("hostname"), viper.GetUint("port"), viper.GetString("database")); err != nil {
+	if err := db.Open(viper.GetString("db-username"), viper.GetString("db-secret"), viper.GetString("db-hostname"), viper.GetUint("db-port"), viper.GetString("db-database")); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
 	var status *string
-	stat, ok := cmd.Flags().GetString("status")
-	if ok == nil {
+
+	if cmd.Flags().Changed("status") {
+		stat, _ := cmd.Flags().GetString("status")
 		status = &stat
 	}
 	claims, err := db.ListClaims(status)
