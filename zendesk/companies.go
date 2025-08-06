@@ -45,8 +45,7 @@ func jsonToOrganizations(js []byte) (OrganizationResult, error) {
 	return or, nil
 }
 
-func GetOrganizations(page int) (OrganizationResult, error) {
-	zd := NewZendesk(ZendeskApi, "574a0f524e9d4fb15bc6f678cf67f11ef442cd285d62c6b8f28397a996b7d37a")
+func (zd *Zendesk) GetOrganizations(page int) (OrganizationResult, error) {
 	rsp, err := zd.Get("organizations")
 	if err != nil {
 		return OrganizationResult{}, err
@@ -54,8 +53,8 @@ func GetOrganizations(page int) (OrganizationResult, error) {
 	return jsonToOrganizations(rsp)
 }
 
-func GetOrganizationsByExternalId(extId string, page int) (OrganizationResult, error) {
-	zd := NewZendesk(ZendeskApi, "574a0f524e9d4fb15bc6f678cf67f11ef442cd285d62c6b8f28397a996b7d37a")
+func (zd *Zendesk) GetOrganizationsByExternalId(extId string, page int) (OrganizationResult, error) {
+	//	zd := NewZendesk(ZendeskApi, "574a0f524e9d4fb15bc6f678cf67f11ef442cd285d62c6b8f28397a996b7d37a")
 	rsp, err := zd.Get("organizations")
 	if err != nil {
 		return OrganizationResult{}, err

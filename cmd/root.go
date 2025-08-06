@@ -39,13 +39,15 @@ func init() {
 	viper.SetDefault("port", 5431)
 	viper.SetDefault("username", "lb_ap_uibakery")
 
-	queueCmd.PersistentFlags().String("hostname", "", "hostname (localhost for SQL Auth Proxy)")
-	queueCmd.PersistentFlags().Uint16("port", 5432, "port number (5432 works for default SQL Auth Proxy)")
-	queueCmd.PersistentFlags().String("database", "lightburn", "Default database")
-	queueCmd.PersistentFlags().String("username", "lb_ap_uibakery", "User name (lb_ap_uibakery)")
-	queueCmd.PersistentFlags().String("secret", "", "Password")
+	queueCmd.PersistentFlags().String("db-hostname", "", "hostname (localhost for SQL Auth Proxy)")
+	queueCmd.PersistentFlags().Uint16("db-port", 5432, "port number (5432 works for default SQL Auth Proxy)")
+	queueCmd.PersistentFlags().String("db-database", "lightburn", "Default database")
+	queueCmd.PersistentFlags().String("db-username", "lb_ap_uibakery", "User name (lb_ap_uibakery)")
+	queueCmd.PersistentFlags().String("db-secret", "", "Password")
+	queueCmd.PersistentFlags().String("zen-hostname", "https://lightburnsoftware.zendesk.com/api/v2/", "ZenDFesk API endpoint")
+	queueCmd.PersistentFlags().String("zen-secret", "", "Access token for ZenDFesk API")
 
-	for _, k := range []string{"hostname", "port", "database", "username", "secret"} {
+	for _, k := range []string{"db-hostname", "db-port", "db-database", "db-username", "db-secret", "zen-hostname", "zen-secret"} {
 		if err := viper.BindPFlag(k, queueCmd.PersistentFlags().Lookup(k)); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
@@ -54,6 +56,7 @@ func init() {
 	RootCmd.AddCommand(versionCmd)
 	RootCmd.AddCommand(serverCmd)
 	RootCmd.AddCommand(queueCmd)
+	RootCmd.AddCommand(shopifyCmd)
 }
 
 func initConfig() {

@@ -192,7 +192,7 @@ func printTable(stats []lbqueue.QueueCount) {
 
 func queueListClaimsRun(cmd *cobra.Command, args []string) {
 	db := &lbqueue.LbDb{}
-	if err := db.Open(viper.GetString("username"), viper.GetString("secret"), viper.GetString("hostname"), viper.GetUint("port"), viper.GetString("database")); err != nil {
+	if err := db.Open(viper.GetString("db-username"), viper.GetString("db-secret"), viper.GetString("db-hostname"), viper.GetUint("db-port"), viper.GetString("db-database")); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
 	var status *string

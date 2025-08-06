@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+const ZendeskApi = "https://lightburnsoftware.zendesk.com/api/v2/"
+
 func TestGeturl(t *testing.T) {
 	tests := []struct {
 		name  string

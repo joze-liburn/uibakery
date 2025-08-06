@@ -7,10 +7,9 @@ import (
 	"net/url"
 )
 
-const ZendeskApi = "https://lightburnsoftware.zendesk.com/api/v2/"
-
 type (
 	Zendesk struct {
+
 		zdApi string
 		token string
 	}
