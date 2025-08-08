@@ -205,6 +205,79 @@ func timep(t time.Time) *time.Time {
 	return &t
 }
 
+func TestJsonToOrganization(t *testing.T) {
+	tests := []struct {
+		name    string
+		data    string
+		want    Organization
+		wanterr bool
+	}{
+		{
+			name: "api-example",
+			data: `{
+  "organization": {
+    "created_at": "2018-11-14T00:14:52Z",
+    "details": "caterpillar =)",
+    "domain_names": [
+      "remain.com"
+    ],
+    "external_id": null,
+    "group_id": 1835962,
+    "id": 4112492,
+    "name": "Groablet Enterprises",
+    "notes": "Something Interesting",
+    "organization_fields": {
+      "datepudding": "2018-11-04T00:00:00+00:00",
+      "org_field_1": "happy happy",
+      "org_field_2": "teapot_kettle"
+    },
+    "shared_comments": false,
+    "shared_tickets": false,
+    "tags": [
+      "smiley",
+      "teapot_kettle"
+    ],
+    "updated_at": "2018-11-14T00:54:22Z",
+    "url": "https://example.zendesk.com/api/v2/organizations/4112492.json"
+  }
+}`,
+			want: Organization{
+				CreatedAt:          timep(time.Date(2018, 11, 14, 0, 14, 52, 0, time.UTC)),
+				Details:            "caterpillar =)",
+				DomainNames:        []string{"remain.com"},
+				ExternalId:         "",
+				GroupId:            1835962,
+				Id:                 4112492,
+				Name:               "Groablet Enterprises",
+				Notes:              "Something Interesting",
+				OrganizationFields: &OrganizationFields{},
+				SharedComments:     false,
+				SharedTickets:      false,
+				Tags:               []string{"smiley", "teapot_kettle"},
+				UpdatedAt:          timep(time.Date(2018, 11, 14, 0, 54, 22, 0, time.UTC)),
+				Url:                "https://example.zendesk.com/api/v2/organizations/4112492.json",
+			},
+		},
+		{
+			name:    "bad json",
+			data:    `[)`,
+			wanterr: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := jsonToOrganization([]byte(test.data))
+			if (err != nil) != test.wanterr {
+				t.Errorf("%s: error: got %v, did I want one? %v", test.name, err, test.wanterr)
+			}
+			if df := cmp.Diff(test.want, got); df != "" {
+				t.Errorf("%s: -want +got\n%s", test.name, df)
+			}
+		})
+	}
+}
+
 func TestJsonToOrganizations(t *testing.T) {
 	jsonstr := `
 {

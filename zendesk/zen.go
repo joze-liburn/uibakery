@@ -1,6 +1,7 @@
 package zendesk
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,7 +20,7 @@ type (
 	GetUrl struct {
 		page  int
 		after string
-		extId int
+		extId string
 		name  string
 	}
 
@@ -39,8 +40,8 @@ func (gu *GetUrl) Url(endpoint string) string {
 			params = append(params, fmt.Sprintf("page[after]=%s", gu.after))
 		}
 	}
-	if gu.extId > 0 {
-		params = append(params, fmt.Sprintf("external_id=%d", gu.extId))
+	if len(gu.extId) > 0 {
+		params = append(params, fmt.Sprintf("external_id=%s", gu.extId))
 	}
 	if len(gu.name) > 0 {
 		params = append(params, fmt.Sprintf("name=%s", gu.name))
@@ -65,7 +66,7 @@ func StartAfter(af string) GetOptions {
 	}
 }
 
-func ByExternalId(eid int) GetOptions {
+func ByExternalId(eid string) GetOptions {
 	return func(gu *GetUrl) error {
 		gu.extId = eid
 		return nil
@@ -109,4 +110,25 @@ func (zd *Zendesk) Get(api string, opt ...GetOptions) ([]byte, error) {
 		return []byte{}, err
 	}
 	return body, nil
+}
+
+func (zd *Zendesk) Put(api string, payload []byte, opt ...GetOptions) ([]byte, error) {
+	url := geturl(zd.zdProtocol, zd.zdHost, zd.zdApi, api, opt...)
+	method := http.MethodPut
+	req, _ := http.NewRequest(method, url, bytes.NewBuffer(payload))
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", zd.token))
+
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return []byte{}, err
+	}
+	defer res.Body.Close()
+
+	response, err := io.ReadAll(res.Body)
+	if err != nil {
+		return []byte{}, err
+	}
+	return response, nil
 }

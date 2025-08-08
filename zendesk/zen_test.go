@@ -25,7 +25,7 @@ func TestGeturl(t *testing.T) {
 		{name: "page", host: "host.example.org", api: "v2", endpoint: "org", opts: []GetOptions{WithPage(12)}, wantaddr: "https://host.example.org/v2/org", wantparts: []string{"page[size]=12"}},
 		{name: "after", host: "host.example.org", api: "v2", endpoint: "org", opts: []GetOptions{StartAfter("42")}, wantaddr: "https://host.example.org/v2/org", wantparts: []string{}},
 		{name: "page and after", host: "host.example.org", api: "v2", endpoint: "org", opts: []GetOptions{WithPage(33), StartAfter("42")}, wantaddr: "https://host.example.org/v2/org", wantparts: []string{"page[size]=33", "page[after]=42"}},
-		{name: "byExternalId", host: "host.example.org", api: "v2", endpoint: "org", opts: []GetOptions{ByExternalId(159)}, wantaddr: "https://host.example.org/v2/org", wantparts: []string{"external_id=159"}},
+		{name: "byExternalId", host: "host.example.org", api: "v2", endpoint: "org", opts: []GetOptions{ByExternalId("stodevetinpetdeset")}, wantaddr: "https://host.example.org/v2/org", wantparts: []string{"external_id=stodevetinpetdeset"}},
 		{name: "byName", host: "host.example.org:1", api: "v2", endpoint: "org", opts: []GetOptions{ByName("159")}, wantaddr: "https://host.example.org:1/v2/org", wantparts: []string{"name=159"}},
 	}
 

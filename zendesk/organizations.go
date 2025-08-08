@@ -15,6 +15,7 @@ type (
 		SyncShopifyCompany     bool   `json:"sync_shopify_company"`
 		Other                  map[string]any
 	}
+
 	Organization struct {
 		CreatedAt          *time.Time          `json:"created_at"`
 		Details            string              `json:"details"`
@@ -31,12 +32,28 @@ type (
 		UpdatedAt          *time.Time          `json:"updated_at"`
 		Url                string              `json:"url"`
 	}
+
 	OrganizationResult struct {
 		Organizations []Organization `json:"organizations"`
 		Meta          Meta           `json:"meta"`
 		Links         Links          `json:"links"`
 	}
 )
+
+func (o Organization) GetId() string {
+	return o.ExternalId
+}
+
+func jsonToOrganization(js []byte) (Organization, error) {
+	buf := struct {
+		Organization Organization `json:"organization"`
+	}{}
+	err := json.Unmarshal(js, &buf)
+	if err != nil {
+		return Organization{}, err
+	}
+	return buf.Organization, nil
+}
 
 func jsonToOrganizations(js []byte) (OrganizationResult, error) {
 	var or OrganizationResult
@@ -106,10 +123,21 @@ func (zd *Zendesk) StreamOrganizations(pageSize int, maxCount uint) <-chan Organ
 }
 
 func (zd *Zendesk) GetOrganizationsByExternalId(extId string, page int) (OrganizationResult, error) {
-	//	zd := NewZendesk(ZendeskApi, "574a0f524e9d4fb15bc6f678cf67f11ef442cd285d62c6b8f28397a996b7d37a")
 	rsp, err := zd.Get("organizations")
 	if err != nil {
 		return OrganizationResult{}, err
 	}
 	return jsonToOrganizations(rsp)
+}
+
+func (zd *Zendesk) UpdateOrganization(org Organization) (Organization, error) {
+	body, err := json.Marshal(map[string]any{"organization": org})
+	if err != nil {
+		return Organization{}, err
+	}
+	rsp, err := zd.Put("organizations", body, ByExternalId(org.ExternalId))
+	if err != nil {
+		return Organization{}, err
+	}
+	return jsonToOrganization(rsp)
 }

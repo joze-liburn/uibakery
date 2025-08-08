@@ -58,11 +58,11 @@ func shopifyListRun(cmd *cobra.Command, args []string) {
 	stream := client.StreamCompaniesIds(10, limit, after)
 	count := 0
 	for nodeerr := range stream {
-		if nodeerr.Err != nil {
-			fmt.Printf("ERROR: %s\n", nodeerr.Err)
+		if nodeerr.GetError() != nil {
+			fmt.Printf("ERROR: %s\n", nodeerr.GetError())
 			return
 		}
-		fmt.Printf("%3d: %s\n", count, nodeerr.Company.Id)
+		fmt.Printf("%3d: %s\n", count, nodeerr.(shopify.CompanyError).Company.Id)
 		count++
 	}
 }
