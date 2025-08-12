@@ -1,6 +1,7 @@
 package zendesk
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -70,9 +71,10 @@ func Time(year int, mon time.Month, day, h, m, s int, loc *time.Location) *time.
 
 func TestGetOrganizations(t *testing.T) {
 	tests := []struct {
-		name string
-		data string
-		want OrganizationResult
+		name    string
+		data    string
+		want    OrganizationResult
+		wanterr error
 	}{
 		{
 			name: "normal",
@@ -186,13 +188,21 @@ func TestGetOrganizations(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "token",
+			data: `{
+    "error":"invalid_token",
+    "error_description":"The access token provided is expired, revoked, malformed or invalid for other reasons."
+}`,
+			wanterr: ErrToken,
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			got, err := jsonToOrganizations([]byte(test.data))
-			if err != nil {
-				t.Errorf("%s: got error %s", test.name, err)
+			if !errors.Is(err, test.wanterr) {
+				t.Errorf("%s: got error %v, want %v", test.name, err, test.wanterr)
 			}
 			if df := cmp.Diff(test.want, got); df != "" {
 				t.Errorf("%s: -want +got\n%s", test.name, df)

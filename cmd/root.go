@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -33,27 +34,24 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.uibakery.json)")
 	rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
-	viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper"))
-
-	viper.SetDefault("db-hostname", "localhost")
-	viper.SetDefault("db-port", 5431)
-	viper.SetDefault("db-username", "lb_ap_uibakery")
-	viper.SetDefault("shp-hostname", "lightburn-software-llc.myshopify.com")
+	vpr := viper.New()
+	initViper(vpr)
 
 	for _, flag := range []struct {
 		name   string
 		defval any
 		usage  string
+		config string
 	}{
-		{name: "db-hostname", defval: "", usage: "hostname (localhost for SQL Auth Proxy)"},
-		{name: "db-port", defval: uint16(5432), usage: "port number (5432 works for default SQL Auth Proxy)"},
-		{name: "db-database", defval: "lightburn", usage: "Default database"},
-		{name: "db-username", defval: "lb_ap_uibakery", usage: "User name (lb_ap_uibakery)"},
-		{name: "db-secret", defval: "", usage: "Password"},
-		{name: "zen-hostname", defval: "https://lightburnsoftware.zendesk.com/api/v2/", usage: "ZenDFesk API endpoint"},
-		{name: "zen-secret", defval: "", usage: "Access token for ZenDFesk API"},
-		{name: "shp-hostname", defval: "lightburn-software-llc.myshopify.com", usage: "Shopify API endpoint"},
-		{name: "shp-secret", defval: "", usage: "Shopify API secret"},
+		{name: "db-hostname", defval: "", usage: "hostname (localhost for SQL Auth Proxy)", config: "lbdatabase.hostname"},
+		{name: "db-port", defval: uint16(5432), usage: "port number (5432 works for default SQL Auth Proxy)", config: "lbdatabase.port"},
+		{name: "db-database", defval: "lightburn", usage: "Default database", config: "lbdatabase.database"},
+		{name: "db-username", defval: "lb_ap_uibakery", usage: "User name (lb_ap_uibakery)", config: "lbdatabase.username"},
+		{name: "db-secret", defval: "", usage: "Password", config: "lbdatabase.secret"},
+		{name: "zen-hostname", defval: "lightburnsoftware.zendesk.com", usage: "ZenDFesk API endpoint", config: "zendesk.hostname"},
+		{name: "zen-secret", defval: "", usage: "Access token for ZenDFesk API", config: "zendesk.secret"},
+		{name: "shp-hostname", defval: "lightburn-software-llc.myshopify.com", usage: "Shopify API endpoint", config: "shopify.hostname"},
+		{name: "shp-secret", defval: "", usage: "Shopify API secret", config: "shopify.secret"},
 	} {
 		switch tval := flag.defval.(type) {
 		case string:
@@ -63,8 +61,26 @@ func init() {
 		default:
 			fmt.Fprintf(os.Stderr, "%s: type %T not implemented", flag.name, tval)
 		}
-		if err := viper.BindPFlag(flag.name, rootCmd.PersistentFlags().Lookup(flag.name)); err != nil {
+		flg := rootCmd.PersistentFlags().Lookup(flag.name)
+		if flg == nil {
+			continue
+		}
+		if err := vpr.BindPFlag(flag.name, flg); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		}
+		if flag.config == "" {
+			continue
+		}
+		// This part passes a value as set by env or config file (that is, from
+		// viper) to command line flag (cobra) _if_ command line value is not
+		// the default one.
+		if !flg.Changed && vpr.IsSet(flag.config) {
+			val := vpr.Get(flag.config)
+			if err := rootCmd.PersistentFlags().Set(flag.name, fmt.Sprintf("%v", val)); err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+				continue
+			}
+			vpr.Set(flag.name, fmt.Sprintf("%v", val))
 		}
 	}
 
@@ -76,25 +92,28 @@ func init() {
 }
 
 func initConfig() {
+
+}
+
+func initViper(v *viper.Viper) {
 	if cfgFile != "" {
 		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
+		v.SetConfigFile(cfgFile)
 	} else {
 		// Find home directory.
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".cobra" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigType("json")
-		viper.SetConfigName(".uibakery")
+		// Search config in home directory with name ".uibakery" (without extension).
+		v.AddConfigPath(home)
+		v.AddConfigPath(".")
+		v.SetConfigName(".uibakery")
+		v.SetConfigType("json")
 	}
+	v.ReadInConfig()
 
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	v.AutomaticEnv()
 }
 
 var versionCmd = &cobra.Command{

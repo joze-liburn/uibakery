@@ -19,6 +19,7 @@ type (
 	Organization struct {
 		CreatedAt          *time.Time          `json:"created_at"`
 		Details            string              `json:"details"`
+		DoNotSyncToZendesk *bool               `json:"do_not_sync_to_zendesk,omitempty"`
 		DomainNames        []string            `json:"domain_names"`
 		ExternalId         string              `json:"external_id"`
 		GroupId            int64               `json:"group_id"`
@@ -34,9 +35,11 @@ type (
 	}
 
 	OrganizationResult struct {
-		Organizations []Organization `json:"organizations"`
-		Meta          Meta           `json:"meta"`
-		Links         Links          `json:"links"`
+		Organizations    []Organization `json:"organizations"`
+		Meta             Meta           `json:"meta"`
+		Links            Links          `json:"links"`
+		Error            *string        `json:"error,omitempty"`
+		ErrorDescription *string        `json:"error_description,omitempty"`
 	}
 )
 
@@ -59,6 +62,13 @@ func jsonToOrganizations(js []byte) (OrganizationResult, error) {
 	var or OrganizationResult
 	if err := json.Unmarshal(js, &or); err != nil {
 		return OrganizationResult{}, err
+	}
+	if or.Error != nil {
+		errdsc := *or.Error
+		if or.ErrorDescription != nil {
+			errdsc = *or.ErrorDescription
+		}
+		return OrganizationResult{}, fmt.Errorf("%w: %s", ErrToken, errdsc)
 	}
 	return or, nil
 }
@@ -92,6 +102,7 @@ func (zd *Zendesk) StreamOrganizations(pageSize int, maxCount uint) <-chan Organ
 		defer close(out)
 		var count uint
 		rsp, geterr := zd.Get("organizations", opts...)
+		fmt.Printf("|rsp| %d (%s), err %v", len(rsp), string(rsp), geterr)
 		for {
 			if geterr != nil {
 				out <- OrganizationError{Err: geterr}

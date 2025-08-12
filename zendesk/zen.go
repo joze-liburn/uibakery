@@ -2,6 +2,7 @@ package zendesk
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,6 +27,8 @@ type (
 
 	GetOptions func(*GetUrl) error
 )
+
+var ErrToken = errors.New("token error")
 
 func NewZendesk(zdHost string, token string) *Zendesk {
 	return &Zendesk{zdProtocol: "https://", zdHost: zdHost, zdApi: "api/v2", token: token}
