@@ -2,6 +2,7 @@ package lbqueue
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -32,6 +33,10 @@ type (
 		Id    string
 		Count uint
 	}
+)
+
+var (
+	errBadUpdate = errors.New("failed update")
 )
 
 // IsOpened verifies the database is opened.
@@ -274,4 +279,24 @@ group by
 		result = append(result, claim)
 	}
 	return result, nil
+}
+
+func (db *LbDb) Grief(lsr LogSyncRecord) error {
+	result, err := db.db.Exec(`update
+    log_sync_record
+set
+    submission_status = 'GRIEF'
+where
+    lb_id = $1`, lsr.LbId)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return fmt.Errorf("%w: updates %d records", errBadUpdate, rows)
+	}
+	return nil
 }
