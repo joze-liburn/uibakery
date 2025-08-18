@@ -148,6 +148,10 @@ type (
 	}
 )
 
+func (c *Company) GetId() string {
+	return c.Id
+}
+
 // GetMetafield returns the value of a given metafield. Second result indicates
 // if the metafield was found.
 func (c *Company) GetMetafield(key string) (string, bool) {
@@ -234,16 +238,34 @@ query Companies($pgSize: Int!, $cursor: String) {
 	return companiesFromGQL(gqlResult)
 }
 
+type StreamErr interface {
+	GetId() string
+	GetName() string
+	GetError() error
+}
+
+func Sth(chan CompanyConnection) {}
+
 type CompanyError struct {
 	Company Company
 	Err     error
+}
+
+func (ce CompanyError) GetId() string {
+	return ce.Company.ExternalId
+}
+func (ce CompanyError) GetName() string {
+	return ce.Company.Name
+}
+func (ce CompanyError) GetError() error {
+	return ce.Err
 }
 
 // StreamCompaniesIds obtains list of client ids from Shopify. It pages through
 // available results pageSize at the time, and puts results into the channel. It
 // stops streaming after maxCount results were obtained (put laaaaarge number
 // to get all results)
-func (spfy *ShopifyOp) StreamCompaniesIds(pageSize int, maxCount uint, after *time.Time) <-chan CompanyError {
+func (spfy *ShopifyOp) StreamCompaniesIds(pageSize int, maxCount uint, after *time.Time) <-chan StreamErr {
 	query := `
 query Companies($pgSize: Int!, $cursor: String, $query: String) {
   companies (first: $pgSize, after: $cursor, query: $query) {
@@ -263,7 +285,7 @@ query Companies($pgSize: Int!, $cursor: String, $query: String) {
 	if after != nil {
 		params["query"] = fmt.Sprintf("updated_at:>='%s'", (*after).Format(time.RFC3339)) // or "2006-01-02"
 	}
-	out := make(chan CompanyError)
+	out := make(chan StreamErr)
 	go func() {
 		var count uint
 		defer close(out)

@@ -30,9 +30,9 @@ func init() {
 }
 
 func zendeskListRun(cmd *cobra.Command, args []string) {
-	host := viper.GetString("zen-hostname")
+	host, _ := cmd.Flags().GetString("zen-hostname")
 	if host == "" {
-		fmt.Fprintf(os.Stderr, "Spotify address missing.")
+		fmt.Fprintf(os.Stderr, "Zendesk address missing.\n")
 		return
 	}
 	scrt := viper.GetString("zen-secret")

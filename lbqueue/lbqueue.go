@@ -66,7 +66,7 @@ func GetTime(tm sql.NullTime) *time.Time {
 	return &res
 }
 
-// GetTime converts database nullable string null values into Go's empty strings.
+// GetString converts database nullable string null values into Go's empty strings.
 func GetString(s sql.NullString) string {
 	if !s.Valid {
 		return ""

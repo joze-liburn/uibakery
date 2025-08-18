@@ -1,0 +1,13 @@
+{
+    "lbdatabase": {
+        "hostname": "35.196.117.104",
+        "port": 5432,
+        "username": "lb_ap_uibakery"
+    },
+    "zendesk": {
+        "hostname": "lightburnsoftware.zendesk.com"
+    },
+    "shopify": {
+        "hostname": "lightburn-software-llc.myshopify.com"
+    }
+}
