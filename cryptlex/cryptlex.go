@@ -8,14 +8,14 @@ import (
 
 type (
 	Cryptlex struct {
-		major int
+		major uint
 		host  string
 		token string
 	}
 )
 
-func NewCryptlex(major int, host string) *Cryptlex {
-	return &Cryptlex{major: major, host: host}
+func NewCryptlex(major uint, host string, secret string) *Cryptlex {
+	return &Cryptlex{major: major, host: host, token: secret}
 }
 
 func (lex *Cryptlex) Get(api string) ([]byte, int, error) {

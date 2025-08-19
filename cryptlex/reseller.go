@@ -51,6 +51,15 @@ func jsonToReseller(body []byte) (Reseller, error) {
 	return rsl, nil
 }
 
+func jsonToResellers(body []byte) ([]Reseller, error) {
+	rsl := []Reseller{}
+	err := json.Unmarshal(body, &rsl)
+	if err != nil {
+		return []Reseller{}, fmt.Errorf("%w: %s", errResellerJson, err)
+	}
+	return rsl, nil
+}
+
 func (lex *Cryptlex) RetrieveReseller(id string) (Reseller, error) {
 	body, code, err := lex.Get(fmt.Sprintf("resellers/%s", id))
 	if err != nil {
@@ -60,4 +69,26 @@ func (lex *Cryptlex) RetrieveReseller(id string) (Reseller, error) {
 		return jsonToError(body)
 	}
 	return jsonToReseller(body)
+}
+
+func (lex *Cryptlex) ListResellers(opts ...CallOptions) ([]Reseller, error) {
+	criteria := CryptlexOpts{}
+	if err := criteria.Apply(opts...); err != nil {
+		return []Reseller{}, err
+	}
+
+	fmt.Println(criteria.ToSearchParam())
+	body, code, err := lex.Get(fmt.Sprintf("resellers%s", criteria.ToSearchParam()))
+	if err != nil {
+		return []Reseller{}, err
+	}
+	if code != http.StatusOK {
+		fmt.Println(code)
+		fmt.Println(lex.host)
+		fmt.Println(string(body)[:200])
+		_, err := jsonToError(body)
+		return []Reseller{}, err
+	}
+	fmt.Println(string(body)[:100])
+	return jsonToResellers(body)
 }

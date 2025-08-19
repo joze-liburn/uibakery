@@ -52,12 +52,17 @@ func init() {
 		{name: "zen-secret", defval: "", usage: "Access token for ZenDFesk API", config: "zendesk.secret"},
 		{name: "shp-hostname", defval: "lightburn-software-llc.myshopify.com", usage: "Shopify API endpoint", config: "shopify.hostname"},
 		{name: "shp-secret", defval: "", usage: "Shopify API secret", config: "shopify.secret"},
+		{name: "crp-hostname", defval: "api.cryptlex.com", usage: "Cryptlex API hostname", config: "cryptlex.hostname"},
+		{name: "crp-secret", defval: "", usage: "Cryptlex secret", config: "cryptlex.secret"},
+		{name: "crp-version", defval: uint(3), usage: "Cryptlex API version", config: "cryptlex.version"},
 	} {
 		switch tval := flag.defval.(type) {
 		case string:
 			rootCmd.PersistentFlags().String(flag.name, tval, flag.usage)
 		case uint16:
 			rootCmd.PersistentFlags().Uint16(flag.name, tval, flag.usage)
+		case uint:
+			rootCmd.PersistentFlags().Uint(flag.name, tval, flag.usage)
 		default:
 			fmt.Fprintf(os.Stderr, "%s: type %T not implemented", flag.name, tval)
 		}
@@ -89,6 +94,7 @@ func init() {
 	rootCmd.AddCommand(queueCmd)
 	rootCmd.AddCommand(shopifyCmd)
 	rootCmd.AddCommand(zendeskCmd)
+	rootCmd.AddCommand(cryptlexCmd)
 }
 
 func initConfig() {
