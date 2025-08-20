@@ -9,5 +9,9 @@
     },
     "shopify": {
         "hostname": "lightburn-software-llc.myshopify.com"
+    },
+    "cryptlex": {
+        "hostname": "api.cryptlex.com",
+        "version": 3
     }
 }

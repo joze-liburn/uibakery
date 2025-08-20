@@ -149,6 +149,67 @@ func TestWithStringOp(t *testing.T) {
 	}
 }
 
+func TestWithFlagStr(t *testing.T) {
+	tests := []struct {
+		name string
+		opt  func(string) (CallOptions, error)
+		flag string
+		want CryptlexOpts
+		err  error
+	}{
+		{
+			name: "supported",
+			opt:  WithIdFlag,
+			flag: "in test",
+			want: CryptlexOpts{Id: OptCmpString{Cmp: "in", Operand: "test"}},
+		},
+		{
+			name: "unsupported",
+			opt:  WithNameFlag,
+			flag: "vk test",
+			err:  errCallOption,
+		},
+		{
+			name: "single-word",
+			opt:  WithEmailFlag,
+			flag: "test",
+			err:  errCallOption,
+		},
+		{
+			name: "multiple-word",
+			opt:  WithNameFlag,
+			flag: "ne to be or not to be",
+			want: CryptlexOpts{Name: OptCmpString{Cmp: "ne", Operand: "to be or not to be"}},
+		},
+		{
+			name: "empty",
+			opt:  WithEmailFlag,
+			flag: "test",
+			err:  errCallOption,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			fnc, err := test.opt(test.flag)
+			if !errors.Is(err, test.err) {
+				t.Errorf("%s: parsing error, got %v, want %v", test.name, err, test.err)
+			}
+			if fnc == nil {
+				return
+			}
+			co := CryptlexOpts{}
+			err = fnc(&co)
+			if !errors.Is(err, test.err) {
+				t.Errorf("%s: WithFlag error, got %v, want %v", test.name, err, test.err)
+			}
+			if df := cmp.Diff(co, test.want); df != "" {
+				t.Errorf("%s: -want +got\n%s", test.name, df)
+			}
+		})
+	}
+}
+
 func TestToSearchPattern(t *testing.T) {
 	tests := []struct {
 		name string
@@ -162,22 +223,22 @@ func TestToSearchPattern(t *testing.T) {
 		{
 			name: "error",
 			opts: []CallOptions{WithPage(12), WithPageSize(-1)},
-			want: []string{"page%2012"},
+			want: []string{"page=12"},
 		},
 		{
 			name: "page",
 			opts: []CallOptions{WithPage(12), WithPageSize(20)},
-			want: []string{"page%2012", "limit%2020"},
+			want: []string{"page=12", "limit=20"},
 		},
 		{
 			name: "set",
 			opts: []CallOptions{WithId("in", strings.Join([]string{"1", "2", "4"}, ","))},
-			want: []string{"id%20in%201,2,4"},
+			want: []string{"id=in%201,2,4"},
 		},
 		{
 			name: "time",
 			opts: []CallOptions{WithCreatedAt("gt", time.Date(2025, 8, 18, 12, 23, 45, 0, time.UTC))},
-			want: []string{"createdAt%20gt%202025-08-18T12:23:45Z"},
+			want: []string{"createdAt=gt%202025-08-18T12:23:45Z"},
 		},
 		{
 			name: "all",
@@ -186,22 +247,22 @@ func TestToSearchPattern(t *testing.T) {
 				WithPageSize(20),
 				WithName("eq", "Donald"),
 				WithEmail("ne", "djt@wh.gov"),
-				WithSearch("gte", "tariff"),
+				WithSearch("current tariff"),
 				WithId("in", strings.Join([]string{"1", "2", "4"}, ",")),
 				WithSort("key"),
 				WithCreatedAt("gt", time.Date(2025, 8, 18, 12, 23, 45, 0, time.UTC)),
 				WithUpdatedAt("gt", time.Date(2025, 8, 18, 13, 03, 15, 0, time.UTC)),
 			},
 			want: []string{
-				"page%2012",
-				"limit%2020",
-				"name%20eq%20Donald",
-				"email%20ne%20djt@wh.gov",
-				"search%20gte%20tariff",
-				"id%20in%201,2,4",
-				"sort%20key",
-				"createdAt%20gt%202025-08-18T12:23:45Z",
-				"updatedAt%20gt%202025-08-18T13:03:15Z",
+				"page=12",
+				"limit=20",
+				"name=eq%20Donald",
+				"email=ne%20djt@wh.gov",
+				"current tariff",
+				"id=in%201,2,4",
+				"sort=key",
+				"createdAt=gt%202025-08-18T12:23:45Z",
+				"updatedAt=gt%202025-08-18T13:03:15Z",
 			},
 		},
 	}
