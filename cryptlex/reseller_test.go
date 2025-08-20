@@ -2,10 +2,13 @@ package cryptlex
 
 import (
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 var (
@@ -134,6 +137,337 @@ func TestJsonToError(t *testing.T) {
 			}
 			if df := cmp.Diff(Reseller{}, got); df != "" {
 				t.Errorf("Reseller -want +got\n%s", df)
+			}
+		})
+	}
+}
+
+func TestListResellers(t *testing.T) {
+	tests := []struct {
+		name       string
+		major      uint
+		token      string
+		rspStatus  int
+		rspBody    []byte
+		wantPath   string
+		wantStatus int
+		want       []Reseller
+		wantErr    error
+		wantToken  []string
+	}{
+		{
+			name:      "normal",
+			major:     7,
+			token:     "psst!",
+			rspStatus: http.StatusOK,
+			rspBody:   []byte(`[{ "id": "tower", "name": "Donald" }, { "id": "sevnica", "name": "Melanija" }]`),
+			wantPath:  "/v7/resellers",
+			want:      []Reseller{{Id: "tower", Name: "Donald"}, {Id: "sevnica", Name: "Melanija"}},
+			wantToken: []string{"Bearer psst!"},
+		},
+		{
+			name:      "404",
+			major:     12,
+			token:     "***",
+			rspStatus: http.StatusNotFound,
+			rspBody:   []byte(`{"message": "covfefe"}`),
+			wantPath:  "/v12/resellers",
+			want:      []Reseller{},
+			wantErr:   errResellerHttp,
+			wantToken: []string{"Bearer ***"},
+		},
+		{
+			name:      "bad-json",
+			major:     12,
+			token:     "***",
+			rspStatus: http.StatusNotFound,
+			rspBody:   []byte(`1+1=2`),
+			wantPath:  "/v12/resellers",
+			want:      []Reseller{},
+			wantErr:   errResellerJson,
+			wantToken: []string{"Bearer ***"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != test.wantPath {
+					t.Errorf("Expected to request %q, got: %q", test.wantPath, r.URL.Path)
+				}
+				tok := r.Header["Authorization"]
+				lessFnc := func(p, q string) bool { return p < q }
+				if df := cmp.Diff(test.wantToken, tok, cmpopts.SortSlices(lessFnc)); df != "" {
+					t.Errorf("%s: http headers: Authorization: -want +got\n%s", test.name, df)
+				}
+
+				w.WriteHeader(test.rspStatus)
+				w.Write([]byte(test.rspBody))
+			}))
+			defer server.Close()
+
+			c := NewCryptlex(test.major, server.URL, test.token)
+			got, err := c.ListResellers()
+			if !errors.Is(err, test.wantErr) {
+				t.Errorf("%s: error: got %v, want %s", test.name, err, test.wantErr)
+			}
+			if df := cmp.Diff(test.want, got); df != "" {
+				t.Errorf("%s: response Reseller: -want +got\n%s", test.name, df)
+			}
+		})
+	}
+}
+
+func TestCreateReseller(t *testing.T) {
+	tests := []struct {
+		name       string
+		major      uint
+		token      string
+		reseller   Reseller
+		rspStatus  int
+		rspBody    []byte
+		wantPath   string
+		wantStatus int
+		want       Reseller
+		wantErr    error
+		wantToken  []string
+	}{
+		{
+			name:      "normal",
+			major:     7,
+			token:     "psst!",
+			reseller:  Reseller{Name: "Donald"},
+			rspStatus: http.StatusOK,
+			rspBody:   []byte(`{ "id": "1", "name": "Donald" }`),
+			wantPath:  "/v7/resellers",
+			want:      Reseller{Id: "1", Name: "Donald"},
+			wantToken: []string{"Bearer psst!"},
+		},
+		{
+			name:      "ignore-id",
+			major:     7,
+			token:     "psst!",
+			reseller:  Reseller{Id: "17", Name: "Donald"},
+			rspStatus: http.StatusOK,
+			rspBody:   []byte(`{ "id": "1", "name": "Donald" }`),
+			wantPath:  "/v7/resellers",
+			want:      Reseller{Id: "1", Name: "Donald"},
+			wantToken: []string{"Bearer psst!"},
+		},
+		{
+			name:      "404",
+			major:     12,
+			token:     "***",
+			reseller:  Reseller{Name: "Melanija"},
+			rspStatus: http.StatusNotFound,
+			rspBody:   []byte(`{"message": "covfefe"}`),
+			wantPath:  "/v12/resellers",
+			want:      Reseller{},
+			wantErr:   errResellerHttp,
+			wantToken: []string{"Bearer ***"},
+		},
+		{
+			name:      "bad-json",
+			major:     12,
+			token:     "***",
+			reseller:  Reseller{Name: "Melanija"},
+			rspStatus: http.StatusNotFound,
+			rspBody:   []byte(`1+1=2`),
+			wantPath:  "/v12/resellers",
+			want:      Reseller{},
+			wantErr:   errResellerJson,
+			wantToken: []string{"Bearer ***"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != test.wantPath {
+					t.Errorf("Expected to request %q, got: %q", test.wantPath, r.URL.Path)
+				}
+				tok := r.Header["Authorization"]
+				lessFnc := func(p, q string) bool { return p < q }
+				if df := cmp.Diff(test.wantToken, tok, cmpopts.SortSlices(lessFnc)); df != "" {
+					t.Errorf("%s: http headers: Authorization: -want +got\n%s", test.name, df)
+				}
+
+				w.WriteHeader(test.rspStatus)
+				w.Write([]byte(test.rspBody))
+			}))
+			defer server.Close()
+
+			c := NewCryptlex(test.major, server.URL, test.token)
+			got, err := c.CreateReseller(test.reseller)
+			if !errors.Is(err, test.wantErr) {
+				t.Errorf("%s: error: got %v, want %s", test.name, err, test.wantErr)
+			}
+			if df := cmp.Diff(test.want, got); df != "" {
+				t.Errorf("%s: response Reseller: -want +got\n%s", test.name, df)
+			}
+		})
+	}
+}
+
+func TestUpdateReseller(t *testing.T) {
+	tests := []struct {
+		name       string
+		major      uint
+		token      string
+		reseller   Reseller
+		rspStatus  int
+		rspBody    []byte
+		wantPath   string
+		wantStatus int
+		want       Reseller
+		wantErr    error
+		wantToken  []string
+	}{
+		{
+			name:      "normal",
+			major:     7,
+			token:     "psst!",
+			reseller:  Reseller{Id: "tower", Name: "Donald"},
+			rspStatus: http.StatusOK,
+			rspBody:   []byte(`{ "id": "tower", "name": "Donald" }`),
+			wantPath:  "/v7/resellers/tower",
+			want:      Reseller{Id: "tower", Name: "Donald"},
+			wantToken: []string{"Bearer psst!"},
+		},
+		{
+			name:      "404",
+			major:     12,
+			token:     "***",
+			reseller:  Reseller{Id: "sevnica", Name: "Melanija"},
+			rspStatus: http.StatusNotFound,
+			rspBody:   []byte(`{"message": "covfefe"}`),
+			wantPath:  "/v12/resellers/sevnica",
+			want:      Reseller{},
+			wantErr:   errResellerHttp,
+			wantToken: []string{"Bearer ***"},
+		},
+		{
+			name:      "bad-json",
+			major:     12,
+			token:     "***",
+			reseller:  Reseller{Id: "sevnica", Name: "Melanija"},
+			rspStatus: http.StatusNotFound,
+			rspBody:   []byte(`1+1=2`),
+			wantPath:  "/v12/resellers/sevnica",
+			want:      Reseller{},
+			wantErr:   errResellerJson,
+			wantToken: []string{"Bearer ***"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != test.wantPath {
+					t.Errorf("Expected to request %q, got: %q", test.wantPath, r.URL.Path)
+				}
+				tok := r.Header["Authorization"]
+				lessFnc := func(p, q string) bool { return p < q }
+				if df := cmp.Diff(test.wantToken, tok, cmpopts.SortSlices(lessFnc)); df != "" {
+					t.Errorf("%s: http headers: Authorization: -want +got\n%s", test.name, df)
+				}
+
+				w.WriteHeader(test.rspStatus)
+				w.Write([]byte(test.rspBody))
+			}))
+			defer server.Close()
+
+			c := NewCryptlex(test.major, server.URL, test.token)
+			got, err := c.UpdateReseller(test.reseller)
+			if !errors.Is(err, test.wantErr) {
+				t.Errorf("%s: error: got %v, want %s", test.name, err, test.wantErr)
+			}
+			if df := cmp.Diff(test.want, got); df != "" {
+				t.Errorf("%s: response Reseller: -want +got\n%s", test.name, df)
+			}
+		})
+	}
+}
+
+func TestRetreiveReseller(t *testing.T) {
+	tests := []struct {
+		name       string
+		major      uint
+		token      string
+		id         string
+		rspStatus  int
+		rspBody    []byte
+		wantPath   string
+		wantStatus int
+		want       Reseller
+		wantErr    error
+		wantToken  []string
+	}{
+		{
+			name:      "normal",
+			major:     7,
+			token:     "psst!",
+			id:        "tower",
+			rspStatus: http.StatusOK,
+			rspBody:   []byte(`{ "id": "tower", "name": "Donald" }`),
+			wantPath:  "/v7/resellers/tower",
+			want:      Reseller{Id: "tower", Name: "Donald"},
+			wantToken: []string{"Bearer psst!"},
+		},
+		{
+			name:      "404",
+			major:     12,
+			token:     "***",
+			id:        "sevnica",
+			rspStatus: http.StatusNotFound,
+			rspBody:   []byte(`{"message": "covfefe"}`),
+			wantPath:  "/v12/resellers/sevnica",
+			want:      Reseller{},
+			wantErr:   errResellerHttp,
+			wantToken: []string{"Bearer ***"},
+		},
+		{
+			name:      "bad-json",
+			major:     12,
+			token:     "***",
+			id:        "sevnica",
+			rspStatus: http.StatusNotFound,
+			rspBody:   []byte(`1+1=2`),
+			wantPath:  "/v12/resellers/sevnica",
+			want:      Reseller{},
+			wantErr:   errResellerJson,
+			wantToken: []string{"Bearer ***"},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != test.wantPath {
+					t.Errorf("Expected to request %q, got: %q", test.wantPath, r.URL.Path)
+				}
+				tok := r.Header["Authorization"]
+				lessFnc := func(p, q string) bool { return p < q }
+				if df := cmp.Diff(test.wantToken, tok, cmpopts.SortSlices(lessFnc)); df != "" {
+					t.Errorf("%s: http headers: Authorization: -want +got\n%s", test.name, df)
+				}
+
+				w.WriteHeader(test.rspStatus)
+				w.Write([]byte(test.rspBody))
+			}))
+			defer server.Close()
+
+			c := NewCryptlex(test.major, server.URL, test.token)
+			got, err := c.RetrieveReseller(test.id)
+			if !errors.Is(err, test.wantErr) {
+				t.Errorf("%s: error: got %v, want %s", test.name, err, test.wantErr)
+			}
+			if df := cmp.Diff(test.want, got); df != "" {
+				t.Errorf("%s: response Reseller: -want +got\n%s", test.name, df)
 			}
 		})
 	}
