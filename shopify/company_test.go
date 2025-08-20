@@ -279,9 +279,6 @@ func TestGetCompanyDetails(t *testing.T) {
 	if c.Locations.Nodes[0].Name != "10 Falls Drive" {
 		t.Errorf("len(c.Locations[0].Name])")
 	}
-	j, _ := json.MarshalIndent(c, "", "  ")
-	t.Log(string(j))
-	t.Log(c.Other)
 }
 
 /*
