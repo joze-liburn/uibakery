@@ -28,7 +28,7 @@ func TestParseFlags(t *testing.T) {
 	}
 }
 
-func TestCreatedAt(t *testing.T) {
+func TestListFlags(t *testing.T) {
 	tests := []struct {
 		name string
 		args []string
@@ -54,20 +54,30 @@ func TestCreatedAt(t *testing.T) {
 			args: []string{"--createdAt", "eq 2025-08-19 9:30", "--updatedAt", "eq 2025-08-21 17:34:51"},
 			want: []string{"createdAt=eq%202025-08-19T09:30:00Z", "updatedAt=eq%202025-08-21T17:34:51Z"},
 		},
+		{
+			name: "empty",
+			args: []string{},
+			want: []string{""},
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			c := &cobra.Command{}
-			addFlags(c)
+			subcmdListAddFlags(c)
 			c.Flags().Parse(test.args)
 			opt, _ := parseFlags(c)
 			co := &cryptlex.CryptlexOpts{}
 			co.Apply(opt...)
 			got := co.ToSearchParam()
 			head, tail, ok := strings.Cut(got, "?")
-			if !ok || len(head) > 0 {
+			switch {
+			case !ok && len(test.args) > 0:
 				t.Fatalf("%s: parameters should start with '?': %s", test.name, got)
+			case ok && len(test.args) == 0:
+				t.Fatalf("%s: didn't expect parameters at all, got: %s", test.name, got)
+			case ok && len(head) > 0:
+				t.Fatalf("%s: '?' should be the very beginning of parameters: %s", test.name, got)
 			}
 			params := strings.Split(tail, "&")
 			if df := cmp.Diff(params, test.want); df != "" {

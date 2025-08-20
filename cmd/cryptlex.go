@@ -34,10 +34,10 @@ operator) quoted.`, strings.Join(cryptlex.TimeFormats, ", ")),
 
 func init() {
 	cryptlexCmd.AddCommand(cryptlexListCmd)
-	addFlags(cryptlexCmd)
+	subcmdListAddFlags(cryptlexListCmd)
 }
 
-func addFlags(cmd *cobra.Command) {
+func subcmdListAddFlags(cmd *cobra.Command) {
 	deft := time.Now().Add(-time.Hour)
 	defs := deft.Format("ge 2006-01-02 15:04")
 	cmd.Flags().Int("page", 1, "Page number to retrieve.")
@@ -59,7 +59,7 @@ Operators: %s.`, defs, strings.Join(cryptlex.OperatorsUpdatedAt, ",")))
 func client(cmd *cobra.Command) (*cryptlex.Cryptlex, error) {
 	host := viper.GetString("crp-hostname")
 	if host == "" {
-		return nil, fmt.Errorf("Cryptlex address missing")
+		return nil, fmt.Errorf("hostname missing")
 	}
 	version, _ := cmd.Flags().GetUint("crp-version")
 	scrt := viper.GetString("crp-secret")
